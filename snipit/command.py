@@ -18,9 +18,11 @@ def main(sysargs = sys.argv[1:]):
     usage='''snipit <alignment> [options]''')
 
     parser.add_argument('alignment',help="Input alignment fasta file")
-    parser.add_argument('-o',"--output-dir",action="store",dest="output_dir")
     parser.add_argument("-r","--reference", action="store",help="Indicates which sequence in the alignment is the reference", dest="reference")
+
+    parser.add_argument('-o',"--output-dir",action="store",dest="output_dir")
     parser.add_argument("-f","--format",action="store",default="png")
+
     if len(sysargs)<1:
         parser.print_help()
         sys.exit(-1)
@@ -30,8 +32,14 @@ def main(sysargs = sys.argv[1:]):
     lengths = []
     lengths_info = []
     num_seqs = 0
+    
+    record_ids = []
+    ref_input = ""
     for record in SeqIO.parse(args.alignment, "fasta"):
+        if ref_input == "":
+            ref_input = record.id
         lengths.append(len(record))
+        record_ids.append(record.id)
         lengths_info.append((record.id, len(record)))
         num_seqs +=1
     # print(f"{num_seqs} found in alignment file")
@@ -41,6 +49,14 @@ def main(sysargs = sys.argv[1:]):
             print(f"{i[0]}\t{i[1]}\n")
         sys.exit(-1)
     
+    if args.reference:
+        
+        if args.reference not in record_ids:
+            sys.stderr.write(f"Error: input reference {args.reference} not found in alignment\n")
+            sys.exit(-1)
+        else:
+            ref_input = args.reference
+
     if not args.output_dir:
         output_dir = cwd
     else:
@@ -52,7 +68,7 @@ def main(sysargs = sys.argv[1:]):
     ambiguities_file = os.path.join(output_dir,"ambiguities.csv")
     output = os.path.join(output_dir,f"genome_graph.{args.format}")
     
-    reference,alignment = sfunks.get_ref_and_alignment(args.alignment,args.reference)
+    reference,alignment = sfunks.get_ref_and_alignment(args.alignment,ref_input)
 
     snp_dict,record_snps = sfunks.find_snps(reference,alignment)
 
