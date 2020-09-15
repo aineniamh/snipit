@@ -34,7 +34,7 @@ def main(sysargs = sys.argv[1:]):
         lengths.append(len(record))
         lengths_info.append((record.id, len(record)))
         num_seqs +=1
-    print(f"{num_seqs} found in alignment file")
+    # print(f"{num_seqs} found in alignment file")
     if len(set(lengths))!= 1:
         sys.stderr.write("Error: not all of the sequences in the alignment are the same length\n")
         for i in lengths_info:
