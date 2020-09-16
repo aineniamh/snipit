@@ -21,7 +21,8 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('alignment',help="Input alignment fasta file")
     parser.add_argument("-r","--reference", action="store",help="Indicates which sequence in the alignment is\nthe reference (by sequence ID).\nDefault: first sequence in alignment", dest="reference")
 
-    parser.add_argument('-o',"--output-dir",action="store",help="Output directory. Default: current working directory", dest="output_dir")
+    parser.add_argument('-d',"--output-dir",action="store",help="Output directory. Default: current working directory", dest="output_dir")
+    parser.add_argument('-o',"--output-file",action="store",help="Output file name stem. Default: snp_plot", default="snp_plot",dest="outfile")
     parser.add_argument("-f","--format",action="store",help="Format options (png, jpg, pdf, svg, tiff) Default: png",default="png")
 
     parser.add_argument("--height",action="store",type=float,help="Overwrite the default figure height",default=0)
@@ -46,7 +47,7 @@ def main(sysargs = sys.argv[1:]):
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
-    output = os.path.join(output_dir,f"genome_graph.{args.format}")
+    output = os.path.join(output_dir,f"{args.outfile}.{args.format}")
     
     reference,alignment = sfunks.get_ref_and_alignment(args.alignment,ref_input)
 
