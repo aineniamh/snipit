@@ -13,7 +13,6 @@ import sys
 from Bio import SeqIO
 
 colour_list = ["lightgrey","white"]
-colour_dict = {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue"}
 colour_cycle = cycle(colour_list)
 END_FORMATTING = '\033[0m'
 BOLD = '\033[1m'
@@ -158,8 +157,7 @@ def find_ambiguities(alignment, snp_dict):
 
     return amb_dict
 
-def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,length,width,height):
-    
+def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,width,height):
     if not width:
         if num_snps == 0:
             print(red(f"Note: no SNPs found between the reference and the alignment"))
@@ -259,6 +257,19 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,length,width,height
     plt.tight_layout()
     plt.savefig(output)
 
+def get_colours(colour_palette):
+    
+    palettes = {"classic": {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue"},
+                "wes": {"A":"#CC8B3C","C":"#456355","T":"#541F12","G":"#B62A3D"}, 
+                "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251"}
+                }
+    if colour_palette not in palettes:
+        sys.stderr.write(red(f"Error: please select one of {palettes} for --colour-palette option\n"))
+        sys.exit(-1)
+    else:
+        colour_dict = palettes[colour_palette]
+
+    return colour_dict
 
 
 def colour(text, text_colour):

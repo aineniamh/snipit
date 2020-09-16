@@ -28,6 +28,9 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--height",action="store",type=float,help="Overwrite the default figure height",default=0)
     parser.add_argument("--width",action="store",type=float,help="Overwrite the default figure width",default=0)
 
+    parser.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: classic, wes, verity",default="classic")
+
+
     if len(sysargs)<1:
         parser.print_help()
         sys.exit(-1)
@@ -55,7 +58,9 @@ def main(sysargs = sys.argv[1:]):
 
     record_ambs = sfunks.find_ambiguities(alignment, snp_dict)
 
-    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,length,args.width,args.height)
+    colours = sfunks.get_colours(args.colour_palette)
+
+    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,colours,length,args.width,args.height)
 
 if __name__ == '__main__':
     main()
