@@ -18,10 +18,10 @@ def main(sysargs = sys.argv[1:]):
     usage='''snipit <alignment> [options]''')
 
     parser.add_argument('alignment',help="Input alignment fasta file")
-    parser.add_argument("-r","--reference", action="store",help="Indicates which sequence in the alignment is the reference (by sequence ID). Can also accept a genbank file. Default: first sequence in alignment", dest="reference")
+    parser.add_argument("-r","--reference", action="store",help="Indicates which sequence in the alignment is\nthe reference (by sequence ID).\nCan also accept a genbank file.\nDefault: first sequence in alignment", dest="reference")
 
     parser.add_argument('-o',"--output-dir",action="store",help="Output directory. Default: current working directory", dest="output_dir")
-    parser.add_argument("-f","--format",action="store",help="Format options. Default: png",default="png")
+    parser.add_argument("-f","--format",action="store",help="Format options (png, jpg, pdf, svg, tiff). Default: png",default="png")
 
     parser.add_argument("--height",action="store",type=float,help="Overwrite the default figure height",default=0)
     parser.add_argument("--width",action="store",type=float,help="Overwrite the default figure width",default=0)
