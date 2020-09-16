@@ -29,33 +29,11 @@ def main(sysargs = sys.argv[1:]):
     else:
         args = parser.parse_args(sysargs)
 
-    lengths = []
-    lengths_info = []
-    num_seqs = 0
-    
-    record_ids = []
-    ref_input = ""
-    for record in SeqIO.parse(args.alignment, "fasta"):
-        if ref_input == "":
-            ref_input = record.id
-        lengths.append(len(record))
-        record_ids.append(record.id)
-        lengths_info.append((record.id, len(record)))
-        num_seqs +=1
-    # print(f"{num_seqs} found in alignment file")
-    if len(set(lengths))!= 1:
-        sys.stderr.write("Error: not all of the sequences in the alignment are the same length\n")
-        for i in lengths_info:
-            print(f"{i[0]}\t{i[1]}\n")
-        sys.exit(-1)
+    num_seqs,ref_input,record_ids = sfunks.qc_alignment(args.alignment)
+        
     
     if args.reference:
-        
-        if args.reference not in record_ids:
-            sys.stderr.write(f"Error: input reference {args.reference} not found in alignment\n")
-            sys.exit(-1)
-        else:
-            ref_input = args.reference
+        ref_file,ref_input = sfunks.reference_qc(args.reference, record_ids,cwd)
 
     if not args.output_dir:
         output_dir = cwd

@@ -9,11 +9,66 @@ import matplotlib.patches as patches
 from matplotlib.patches import Polygon
 from itertools import cycle
 import math
+import sys
 from Bio import SeqIO
 
 colour_list = ["lightgrey","white"]
 colour_dict = {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue"}
 colour_cycle = cycle(colour_list)
+
+
+
+def qc_alignment(alignment):
+    lengths = []
+    lengths_info = []
+    num_seqs = 0
+    
+    record_ids = []
+    ref_input = ""
+    for record in SeqIO.parse(alignment, "fasta"):
+        if ref_input == "":
+            ref_input = record.id
+        lengths.append(len(record))
+        record_ids.append(record.id)
+        lengths_info.append((record.id, len(record)))
+        num_seqs +=1
+
+    if len(set(lengths))!= 1:
+        sys.stderr.write("Error: not all of the sequences in the alignment are the same length\n")
+        for i in lengths_info:
+            print(f"{i[0]}\t{i[1]}\n")
+        sys.exit(-1)
+    
+    return num_seqs,ref_input,record_ids
+
+def reference_qc(reference, record_ids,cwd):
+    ref_file = ""
+    if "." in reference and reference.split(".")[-1] in ["gb","genbank"]:
+        ref_path = os.path.join(cwd, reference)
+        if not os.path.exists(ref_path):
+            sys.stderr.write(f"Error: can't find genbank file at {ref_path}\n")
+            sys.exit(-1)
+        else:
+            ref_input = ""
+            ref_file = ""
+            record_count = 0
+            for record in SeqIO.parse(reference, "genbank"):
+                ref_input = record.seq
+                ref_file = record
+                record_count += 1
+
+            if record_count >1:
+                sys.stderr.write(f"Error: more than one record found in reference genbank file\n")
+                sys.exit(-1)
+
+    elif reference not in record_ids:
+        sys.stderr.write(f"Error: input reference {reference} not found in alignment\n")
+        sys.exit(-1)
+
+    else:
+        ref_input = reference
+
+    return ref_file, ref_input
 
 def next_colour():
     return next(colour_cycle)
