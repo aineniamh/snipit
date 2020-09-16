@@ -8,23 +8,23 @@ Summarise snps relative to a reference sequence
 ```
 usage: snipit <alignment> [options]
 
-snipit
+snipit 
+
 
 positional arguments:
-  alignment             Input alignment fasta file
+  alignment                 Input alignment fasta file
 
 optional arguments:
-  -h, --help            show this help message and exit
-
+  -h, --help                show this help message and exit
   -r REFERENCE, 
   --reference REFERENCE
-                        Indicates which sequence in the alignment is the reference (by sequence ID). Default: first sequence
-
+                            Indicates which sequence in the alignment is the reference (by sequence ID). Can also accept a genbank file. Default: first sequence in alignment
   -o OUTPUT_DIR, 
   --output-dir OUTPUT_DIR
-                        
-                        Output directory. Default: current working directory
+                            Output directory. Default: current working directory
   -f FORMAT, 
   --format FORMAT
-                        Format options. Default: png
+                            Format options. Default: png
+  --height HEIGHT           Overwrite the default figure height
+  --width WIDTH             Overwrite the default figure width
 ```
