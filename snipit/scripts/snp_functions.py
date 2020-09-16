@@ -15,26 +15,47 @@ from Bio import SeqIO
 colour_list = ["lightgrey","white"]
 colour_dict = {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue"}
 colour_cycle = cycle(colour_list)
+END_FORMATTING = '\033[0m'
+BOLD = '\033[1m'
+UNDERLINE = '\033[4m'
+RED = '\033[31m'
+GREEN = '\033[32m'
+YELLOW = '\033[93m'
+CYAN = '\u001b[36m'
+DIM = '\033[2m'
 
-
-
-def qc_alignment(alignment):
+def qc_alignment(alignment,reference,cwd):
     lengths = []
     lengths_info = []
     num_seqs = 0
     
     record_ids = []
     ref_input = ""
-    for record in SeqIO.parse(alignment, "fasta"):
-        if ref_input == "":
-            ref_input = record.id
-        lengths.append(len(record))
-        record_ids.append(record.id)
-        lengths_info.append((record.id, len(record)))
-        num_seqs +=1
+
+    alignment_file = os.path.join(cwd, alignment)
+    if not os.path.exists(alignment_file):
+        sys.stderr.write(red(f"Error: can't find alignment file at {alignment_file}\n"))
+        sys.exit(-1)
+
+    try:
+        for record in SeqIO.parse(alignment_file, "fasta"):
+            if ref_input == "":
+                ref_input = record.id
+            lengths.append(len(record))
+            record_ids.append(record.id)
+            lengths_info.append((record.id, len(record)))
+            num_seqs +=1
+    except:
+        sys.stderr.write(red(f"Error: alignment file must be in fasta format\n"))
+        sys.exit(-1)
+
+    if num_seqs == 1:
+        if reference.split(".")[-1] not in ["gb","genbank"]:
+            sys.stderr.write(red(f"Error: alignment file must contain more than just the reference. Either provide a reference genbank file or add more sequences to your alignment.\n"))
+            sys.exit(-1)
 
     if len(set(lengths))!= 1:
-        sys.stderr.write("Error: not all of the sequences in the alignment are the same length\n")
+        sys.stderr.write(red("Error: not all of the sequences in the alignment are the same length\n"))
         for i in lengths_info:
             print(f"{i[0]}\t{i[1]}\n")
         sys.exit(-1)
@@ -46,7 +67,7 @@ def reference_qc(reference, record_ids,cwd):
     if "." in reference and reference.split(".")[-1] in ["gb","genbank"]:
         ref_path = os.path.join(cwd, reference)
         if not os.path.exists(ref_path):
-            sys.stderr.write(f"Error: can't find genbank file at {ref_path}\n")
+            sys.stderr.write(red(f"Error: can't find genbank file at {ref_path}\n"))
             sys.exit(-1)
         else:
             ref_input = ""
@@ -58,11 +79,11 @@ def reference_qc(reference, record_ids,cwd):
                 record_count += 1
 
             if record_count >1:
-                sys.stderr.write(f"Error: more than one record found in reference genbank file\n")
+                sys.stderr.write(red(f"Error: more than one record found in reference genbank file\n"))
                 sys.exit(-1)
 
     elif reference not in record_ids:
-        sys.stderr.write(f"Error: input reference {reference} not found in alignment\n")
+        sys.stderr.write(red(f"Error: input reference {reference} not found in alignment\n"))
         sys.exit(-1)
 
     else:
@@ -138,9 +159,10 @@ def find_ambiguities(alignment, snp_dict):
     return amb_dict
 
 def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,length,width,height):
-
+    
     if not width:
-        if num_snps <5:
+        if num_snps == 0:
+            print(red(f"Note: no SNPs found between the reference and the alignment"))
             width = 12
         else:
             width = math.sqrt(num_snps)*3
@@ -237,3 +259,45 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,length,width,height
     plt.tight_layout()
     plt.savefig(output)
 
+
+
+def colour(text, text_colour):
+    bold_text = 'bold' in text_colour
+    text_colour = text_colour.replace('bold', '')
+    underline_text = 'underline' in text_colour
+    text_colour = text_colour.replace('underline', '')
+    text_colour = text_colour.replace('_', '')
+    text_colour = text_colour.replace(' ', '')
+    text_colour = text_colour.lower()
+    if 'red' in text_colour:
+        coloured_text = RED
+    elif 'green' in text_colour:
+        coloured_text = GREEN
+    elif 'yellow' in text_colour:
+        coloured_text = YELLOW
+    elif 'dim' in text_colour:
+        coloured_text = DIM
+    elif 'cyan' in text_colour:
+        coloured_text = 'cyan'
+    else:
+        coloured_text = ''
+    if bold_text:
+        coloured_text += BOLD
+    if underline_text:
+        coloured_text += UNDERLINE
+    if not coloured_text:
+        return text
+    coloured_text += text + END_FORMATTING
+    return coloured_text
+
+def red(text):
+    return RED + text + END_FORMATTING
+
+def cyan(text):
+    return CYAN + text + END_FORMATTING
+
+def green(text):
+    return GREEN + text + END_FORMATTING
+
+def yellow(text):
+    return YELLOW + text + END_FORMATTING

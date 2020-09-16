@@ -31,7 +31,7 @@ def main(sysargs = sys.argv[1:]):
     else:
         args = parser.parse_args(sysargs)
 
-    num_seqs,ref_input,record_ids,length = sfunks.qc_alignment(args.alignment)
+    num_seqs,ref_input,record_ids,length = sfunks.qc_alignment(args.alignment,args.reference,cwd)
         
     
     if args.reference:
