@@ -23,8 +23,8 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('-o',"--output-dir",action="store",help="Output directory. Default: current working directory", dest="output_dir")
     parser.add_argument("-f","--format",action="store",help="Format options. Default: png",default="png")
 
-    parser.add_argument("-h","--height",action="store",type=float,help="Overwrite the default figure height",default=0)
-    parser.add_argument("-w","--width",action="store",type=float,help="Overwrite the default figure width",default=0)
+    parser.add_argument("--height",action="store",type=float,help="Overwrite the default figure height",default=0)
+    parser.add_argument("--width",action="store",type=float,help="Overwrite the default figure width",default=0)
     if len(sysargs)<1:
         parser.print_help()
         sys.exit(-1)
