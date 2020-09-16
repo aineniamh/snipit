@@ -39,7 +39,7 @@ def qc_alignment(alignment):
             print(f"{i[0]}\t{i[1]}\n")
         sys.exit(-1)
     
-    return num_seqs,ref_input,record_ids
+    return num_seqs,ref_input,record_ids,lengths[0]
 
 def reference_qc(reference, record_ids,cwd):
     ref_file = ""
@@ -136,10 +136,15 @@ def find_ambiguities(alignment, snp_dict):
 
     return amb_dict
 
-def make_graph(num_seqs,input_file,amb_dict,snp_records,output):
+def make_graph(num_seqs,input_file,amb_dict,snp_records,output,length,width,height):
 
-    height = math.sqrt(num_seqs)*2
-    fig, ax = plt.subplots(1,1, figsize=(12,height), dpi=250)
+    if not width:
+        width = 12
+
+    if not height:
+        height = math.sqrt(num_seqs)*2
+    
+    fig, ax = plt.subplots(1,1, figsize=(width,height), dpi=250)
 
     y_position = 0
     ref_vars = {}
@@ -151,7 +156,7 @@ def make_graph(num_seqs,input_file,amb_dict,snp_records,output):
         x = []
         y = []
         col = next_colour()
-        rect = patches.Rectangle((0,y_position-0.5), 29903, 1 ,alpha=0.3, fill=True, edgecolor='none',facecolor=col)
+        rect = patches.Rectangle((0,y_position-0.5), length, 1 ,alpha=0.3, fill=True, edgecolor='none',facecolor=col)
         ax.add_patch(rect)
         
         for snp in snps:
@@ -171,7 +176,7 @@ def make_graph(num_seqs,input_file,amb_dict,snp_records,output):
 
         ax.text(-20, y_position, record, size=9, ha="right", va="center")
     
-    spacing = 29903/(len(snp_dict)+1)
+    spacing = length/(len(snp_dict)+1)
     
     position = 0
     for snp in sorted(snp_dict):
@@ -203,11 +208,11 @@ def make_graph(num_seqs,input_file,amb_dict,snp_records,output):
         ax.add_patch(rect)
 
     # reference variant rectangle
-    rect = patches.Rectangle((0,-0.7), 29903, 1 ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
+    rect = patches.Rectangle((0,-0.7), length, 1 ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
     ax.add_patch(rect)
     ax.text(-20, -0.2, "Reference", size=9, ha="right", va="center")
     # reference genome rectangle
-    rect = patches.Rectangle((0,-2.7), 29903, 1 ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
+    rect = patches.Rectangle((0,-2.7), length, 1 ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
     ax.add_patch(rect)
 
     for var in ref_vars:
@@ -221,7 +226,7 @@ def make_graph(num_seqs,input_file,amb_dict,snp_records,output):
 
     plt.yticks([])
             
-    ax.set_xlim(0,29903)
+    ax.set_xlim(0,length)
     ax.set_ylim(-2.7,y_position+1)
     ax.tick_params(axis='x', labelsize=8)
     plt.xlabel("Genome position (base)", fontsize=9)

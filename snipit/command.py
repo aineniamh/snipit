@@ -23,13 +23,15 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('-o',"--output-dir",action="store",help="Output directory. Default: current working directory", dest="output_dir")
     parser.add_argument("-f","--format",action="store",help="Format options. Default: png",default="png")
 
+    parser.add_argument("-h","--height",action="store",type=float,help="Overwrite the default figure height",default=0)
+    parser.add_argument("-w","--width",action="store",type=float,help="Overwrite the default figure width",default=0)
     if len(sysargs)<1:
         parser.print_help()
         sys.exit(-1)
     else:
         args = parser.parse_args(sysargs)
 
-    num_seqs,ref_input,record_ids = sfunks.qc_alignment(args.alignment)
+    num_seqs,ref_input,record_ids,length = sfunks.qc_alignment(args.alignment)
         
     
     if args.reference:
@@ -52,7 +54,7 @@ def main(sysargs = sys.argv[1:]):
 
     record_ambs = sfunks.find_ambiguities(alignment, snp_dict)
 
-    sfunks.make_graph(num_seqs,snp_file,record_ambs,record_snps,output)
+    sfunks.make_graph(num_seqs,snp_file,record_ambs,record_snps,output,length,args.width,args.height)
 
 if __name__ == '__main__':
     main()
