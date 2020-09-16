@@ -44,17 +44,15 @@ def main(sysargs = sys.argv[1:]):
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
-    snp_file = os.path.join(output_dir,"snps.csv")
-    ambiguities_file = os.path.join(output_dir,"ambiguities.csv")
     output = os.path.join(output_dir,f"genome_graph.{args.format}")
     
     reference,alignment = sfunks.get_ref_and_alignment(args.alignment,ref_input)
 
-    snp_dict,record_snps = sfunks.find_snps(reference,alignment)
+    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment)
 
     record_ambs = sfunks.find_ambiguities(alignment, snp_dict)
 
-    sfunks.make_graph(num_seqs,snp_file,record_ambs,record_snps,output,length,args.width,args.height)
+    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,length,args.width,args.height)
 
 if __name__ == '__main__':
     main()

@@ -90,7 +90,7 @@ def find_snps(reference_seq,input_seqs):
     non_amb = ["A","T","G","C"]
     snp_dict = {}
     record_snps = {}
-
+    snp_counter = collections.Counter()
     for query_seq in input_seqs:
         snps =[]
 
@@ -100,13 +100,14 @@ def find_snps(reference_seq,input_seqs):
                 if bases[0] in non_amb and bases[1] in non_amb:
                     
                     snp = f"{i+1}{bases[1]}{bases[0]}" # position-reference-query
+                    snp_counter[snp]+=1
                     snps.append(snp)
         snp_dict[query_seq] = snps
 
         for record in input_seqs[query_seq]:
             record_snps[record] = snps
 
-    return snp_dict,record_snps
+    return snp_dict,record_snps,len(snp_counter)
 
 def find_ambiguities(alignment, snp_dict):
 
@@ -136,10 +137,13 @@ def find_ambiguities(alignment, snp_dict):
 
     return amb_dict
 
-def make_graph(num_seqs,input_file,amb_dict,snp_records,output,length,width,height):
+def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,length,width,height):
 
     if not width:
-        width = 12
+        if num_snps <5:
+            width = 12
+        else:
+            width = math.sqrt(num_snps)*3
 
     if not height:
         height = math.sqrt(num_seqs)*2
