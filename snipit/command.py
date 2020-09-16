@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from snipit import __version__
 import argparse
 import os
