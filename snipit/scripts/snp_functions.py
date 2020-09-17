@@ -263,6 +263,8 @@ def get_colours(colour_palette):
                 "wes": {"A":"#CC8B3C","C":"#456355","T":"#541F12","G":"#B62A3D"}, 
                 "primary": {"A":"green","C":"goldenrod","T":"steelblue","G":"indianred"},
                 "purine-pyrimidine":{"A":"indianred","C":"teal","T":"teal","G":"indianred"},
+                "greyscale":{"A":"#CCCCCC","C":"#999999","T":"#666666","G":"#333333"},
+                "blues":{"A":"#3DB19D","C":"#76C5BF","T":"#423761","G":"steelblue"},
                 "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251"}
                 }
     if colour_palette not in palettes:
@@ -279,8 +281,6 @@ def check_format(f):
     if f not in formats:
         sys.stderr.write(red(f"Error: format specified not one of:\n - {f_string}\n"))
         sys.exit(-1)
-
-
 
 def colour(text, text_colour):
     bold_text = 'bold' in text_colour
