@@ -158,89 +158,134 @@ def find_ambiguities(alignment, snp_dict):
     return amb_dict
 
 def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,width,height):
-    if not width:
-        if num_snps == 0:
-            print(red(f"Note: no SNPs found between the reference and the alignment"))
-            width = 12
-        else:
-            width = math.sqrt(num_snps)*3
-
-    if not height:
-        height = math.sqrt(num_seqs)*2
     
-    fig, ax = plt.subplots(1,1, figsize=(width,height), dpi=250)
-
-    y_position = 0
+    y_level = 0
     ref_vars = {}
     snp_dict = collections.defaultdict(list)
-
+    
     for record in snp_records:
-        y_position +=1
+
+        # y level increments per record
+        y_level +=1
+
+        # for each record get the list of snps
         snps = snp_records[record]
         x = []
         y = []
-        col = next_colour()
-        rect = patches.Rectangle((0,y_position-0.5), length, 1 ,alpha=0.3, fill=True, edgecolor='none',facecolor=col)
-        ax.add_patch(rect)
         
         for snp in snps:
+            # snp => 12345AT
             x_position = int(snp[:-2])
             base = snp[-1]
             ref = snp[-2]
             ref_vars[x_position]=ref
-            snp_dict[x_position].append((record, ref, base, y_position))
-            # ax.text(x_position, y_position, base, size=8, ha="center", va="center")
+            # Add name of record, ref, SNP in record, y_level
+            snp_dict[x_position].append((record, ref, base, y_level))
+
+        # if there are ambiguities in that record, add them to the snp dict too
         if record in amb_dict:
             for amb in amb_dict[record]:
+                # amb => 12345AN
                 x_position = int(amb[:-2])
                 base = amb[-1]
                 ref = amb[-2]
                 ref_vars[x_position]=ref
-                snp_dict[x_position].append((record, ref, base, y_position))
+                # Add name of record, ref, SNP in record, y_level
+                snp_dict[x_position].append((record, ref, base, y_level))
 
-        ax.text(-20, y_position, record, size=9, ha="right", va="center")
+    if not width:
+        if num_snps ==0:
+            print(red(f"Note: no SNPs found between the reference and the alignment"))
+            width = 5
+        else:
+            width = num_snps +1
     
     spacing = length/(len(snp_dict)+1)
     
+    if not height:
+        y_inc = (spacing*0.8*y_level)/length
+        height = y_inc*3 + y_level + y_inc*2 # bottom chunk, and num seqs, and text on top
+
+    # width and height of the figure
+    fig, ax = plt.subplots(1,1, figsize=(width,height), dpi=250)
+
+    y_level =0
+
+    for record in snp_records:
+
+        # y position increments
+        y_level += y_inc
+
+        # either grey or white
+        col = next_colour()
+
+        # for each record (sequence) draw a rectangle the length of the whole genome (either grey or white)
+        rect = patches.Rectangle((0,y_level-(0.5*y_inc)), length, y_inc ,alpha=0.3, fill=True, edgecolor='none',facecolor=col)
+        ax.add_patch(rect)
+
+        # for each record add the name to the left hand side
+        ax.text(-20, y_level, record, size=9, ha="right", va="center")
+
     position = 0
     for snp in sorted(snp_dict):
         position += spacing
-        ax.text(position, y_position+1, snp, size=9, ha="center", va="bottom", rotation=90)
-
+        ax.text(position, y_level+(0.5*y_inc), snp, size=9, ha="center", va="bottom", rotation=90)
         # snp position labels
-        
+        left_of_box = position-(0.4*spacing)
+        right_of_box = position+(0.4*spacing)
+
+        top_polygon = y_inc * -0.7
+        bottom_polygon = y_inc * -1.7
+
         for sequence in snp_dict[snp]:
-            # sequence variant text
+            
             name,ref,var,y_pos = sequence
+            bottom_of_box = (y_pos*y_inc)-(0.5*y_inc)
+            
+
+            # draw box for snp
             if var in colour_dict:
-                rect = patches.Rectangle((position-(0.4*spacing),y_pos-0.5), spacing*0.8, 1 ,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()])
+                rect = patches.Rectangle((left_of_box,bottom_of_box),spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()])
             else:
-                rect = patches.Rectangle((position-(0.4*spacing),y_pos-0.5), spacing*0.8, 1 ,alpha=0.5, fill=True, edgecolor='none',facecolor="dimgrey")
+                rect = patches.Rectangle((left_of_box,bottom_of_box), spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor="dimgrey")
+            
             ax.add_patch(rect)
-            ax.text(position, y_pos, var, size=9, ha="center", va="center")
+
+            # sequence variant text
+            ax.text(position, y_pos*y_inc, var, size=9, ha="center", va="center")
 
         # reference variant text
-        ax.text(position, -0.2, ref, size=9, ha="center", va="center") 
+        ax.text(position, y_inc * -0.2, ref, size=9, ha="center", va="center") 
 
         #polygon showing mapping from genome to spaced out snps
-        x = [snp-0.5,snp+0.5,position+(0.4*spacing),position-(0.4*spacing),snp-0.5]
-        y = [-1.7,-1.7,-0.7,-0.7,-1.7]
+        x = [snp-0.5,snp+0.5,right_of_box,left_of_box,snp-0.5]
+
+        y = [bottom_polygon,bottom_polygon,top_polygon,top_polygon,bottom_polygon]
         coords = list(zip(x, y))
+
+        # draw polygon
         poly = patches.Polygon(coords, alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
         ax.add_patch(poly)
-        rect = patches.Rectangle((position-(0.4*spacing),-0.7), spacing*0.8, 1 ,alpha=0.1, fill=True, edgecolor='none',facecolor="dimgrey")
+
+        # 
+        rect = patches.Rectangle((left_of_box,top_polygon), spacing*0.8, y_inc,alpha=0.1, fill=True, edgecolor='none',facecolor="dimgrey")
         ax.add_patch(rect)
 
+
     # reference variant rectangle
-    rect = patches.Rectangle((0,-0.7), length, 1 ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
+    rect = patches.Rectangle((0,(top_polygon)), length, y_inc ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
     ax.add_patch(rect)
-    ax.text(-20, -0.2, "Reference", size=9, ha="right", va="center")
+
+    ax.text(-20,  y_inc * -0.2, "Reference", size=9, ha="right", va="center")
+
+    ref_genome_position = y_inc*-2.7
+
     # reference genome rectangle
-    rect = patches.Rectangle((0,-2.7), length, 1 ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
+    rect = patches.Rectangle((0,ref_genome_position), length, y_inc ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
     ax.add_patch(rect)
 
     for var in ref_vars:
-        ax.plot([var,var],[-2.69,-1.71], color="#cbaca4")
+        ax.plot([var,var],[ref_genome_position,ref_genome_position+y_inc], color="#cbaca4")
 
 
     ax.spines['top'].set_visible(False) ## make axes invisible
@@ -251,7 +296,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,
     plt.yticks([])
             
     ax.set_xlim(0,length)
-    ax.set_ylim(-2.7,y_position+1)
+    ax.set_ylim(ref_genome_position,y_level+y_inc)
     ax.tick_params(axis='x', labelsize=8)
     plt.xlabel("Genome position (base)", fontsize=9)
     plt.tight_layout()
