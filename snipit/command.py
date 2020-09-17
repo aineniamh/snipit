@@ -27,6 +27,7 @@ def main(sysargs = sys.argv[1:]):
 
     parser.add_argument("--height",action="store",type=float,help="Overwrite the default figure height",default=0)
     parser.add_argument("--width",action="store",type=float,help="Overwrite the default figure width",default=0)
+    parser.add_argument("--size-option",action="store",help="Specify options for sizing. Options: expand, scale",dest="size_option",default="scale")
 
     parser.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")
 
@@ -61,8 +62,9 @@ def main(sysargs = sys.argv[1:]):
     colours = sfunks.get_colours(args.colour_palette)
 
     sfunks.check_format(args.format)
+    sfunks.check_size_option(args.size_option)
 
-    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,colours,length,args.width,args.height)
+    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,colours,length,args.width,args.height,args.size_option)
 
 if __name__ == '__main__':
     main()

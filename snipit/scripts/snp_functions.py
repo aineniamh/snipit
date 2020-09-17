@@ -157,7 +157,7 @@ def find_ambiguities(alignment, snp_dict):
 
     return amb_dict
 
-def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,width,height):
+def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,width,height,size_option):
     
     y_level = 0
     ref_vars = {}
@@ -193,19 +193,36 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,
                 # Add name of record, ref, SNP in record, y_level
                 snp_dict[x_position].append((record, ref, base, y_level))
 
-    if not width:
-        if num_snps ==0:
-            print(red(f"Note: no SNPs found between the reference and the alignment"))
-            width = 5
-        else:
-            width = num_snps +1
-    
     spacing = length/(len(snp_dict)+1)
+    y_inc = (spacing*0.8*y_level)/length
     
-    if not height:
-        y_inc = (spacing*0.8*y_level)/length
-        height = y_inc*3 + y_level + y_inc*2 # bottom chunk, and num seqs, and text on top
+    if size_option == "expand":
+        if not width:
+            if num_snps ==0:
+                print(red(f"Note: no SNPs found between the reference and the alignment"))
+                width = 10
+            else:
+                if len(snp_dict) <10:
+                    width = 10
+                else:
+                    width = 0.25* len(snp_dict)
 
+        if not height:
+            if y_level < 5:
+                height = 5
+            else:
+                height = (y_inc*3 + 0.5*y_level + y_inc*2) # bottom chunk, and num seqs, and text on top
+
+    elif size_option == "scale":
+        if not width:
+            if num_snps == 0:
+                print(red(f"Note: no SNPs found between the reference and the alignment"))
+                width = 12
+            else:
+                width = math.sqrt(num_snps)*3
+
+        if not height:
+            height = math.sqrt(num_seqs)*2
     # width and height of the figure
     fig, ax = plt.subplots(1,1, figsize=(width,height), dpi=250)
 
@@ -285,7 +302,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,
     ax.add_patch(rect)
 
     for var in ref_vars:
-        ax.plot([var,var],[ref_genome_position,ref_genome_position+y_inc], color="#cbaca4")
+        ax.plot([var,var],[ref_genome_position,ref_genome_position+(y_inc*0.98)], color="#cbaca4")
 
 
     ax.spines['top'].set_visible(False) ## make axes invisible
@@ -296,7 +313,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,
     plt.yticks([])
             
     ax.set_xlim(0,length)
-    ax.set_ylim(ref_genome_position,y_level+y_inc)
+    ax.set_ylim(ref_genome_position,y_level+(y_inc*1.05))
     ax.tick_params(axis='x', labelsize=8)
     plt.xlabel("Genome position (base)", fontsize=9)
     plt.tight_layout()
@@ -319,6 +336,13 @@ def get_colours(colour_palette):
         colour_dict = palettes[colour_palette]
 
     return colour_dict
+
+def check_size_option(s):
+    size_options = ["expand", "scale"]
+    s_string = "\n - ".join(size_options)
+    if s not in size_options:
+        sys.stderr.write(red(f"Error: size option specified not one of:\n - {s_string}\n"))
+        sys.exit(-1)
 
 def check_format(f):
     formats = ["png", "jpg", "pdf", "svg", "tiff"]
