@@ -261,6 +261,8 @@ def get_colours(colour_palette):
     
     palettes = {"classic": {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue"},
                 "wes": {"A":"#CC8B3C","C":"#456355","T":"#541F12","G":"#B62A3D"}, 
+                "primary": {"A":"green","C":"goldenrod","T":"steelblue","G":"indianred"},
+                "purine-pyrimidine":{"A":"indianred","C":"teal","T":"teal","G":"indianred"},
                 "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251"}
                 }
     if colour_palette not in palettes:
@@ -270,6 +272,14 @@ def get_colours(colour_palette):
         colour_dict = palettes[colour_palette]
 
     return colour_dict
+
+def check_format(f):
+    formats = ["png", "jpg", "pdf", "svg", "tiff"]
+    f_string = "\n - ".join(formats)
+    if f not in formats:
+        sys.stderr.write(red(f"Error: format specified not one of:\n - {f_string}\n"))
+        sys.exit(-1)
+
 
 
 def colour(text, text_colour):
