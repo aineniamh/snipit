@@ -90,16 +90,53 @@ def reference_qc(reference, record_ids,cwd):
 
     return ref_file, ref_input
 
+def label_map(record_ids,labels,column_names,cwd):
+    seq_col,label_col = column_names.split(",")
+    
+    label_map = {}
+    if labels:
+        label_file = os.path.join(cwd,labels)
+        if os.path.exists(label_file):
+            with open(label_file, "r") as f:
+                reader = csv.DictReader(f)
+                if seq_col not in reader.fieldnames:
+                    sys.stderr.write(red(f"Error: {seq_col} not a column name in {labels}\n"))
+                    sys.exit(-1)
+                elif label_col not in reader.fieldnames:
+                    sys.stderr.write(red(f"Error: {label_col} not a column name in {labels}\n"))
+                    sys.exit(-1)
+
+                for row in reader:
+                    sequence_name,label = (row[seq_col],row[label_col])
+                    label_map[sequence_name] = label
+        else:
+            sys.stderr.write(red(f"Error: {record_id} not in {labels} header\n"))
+            sys.exit(-1)
+
+        for record_id in record_ids:
+            if record_id not in label_map:
+                sys.stderr.write(red(f"Error: {record_id} not in {labels} header\n"))
+                sys.exit(-1)
+    else:
+        for record_id in record_ids:
+            label_map[record_id] = record_id
+
+    return label_map
+
 def next_colour():
     return next(colour_cycle)
 
-def get_ref_and_alignment(input_file,reference):
+def get_ref_and_alignment(input_file,reference,label_map):
     input_seqs = collections.defaultdict(list)
     reference_seq = ""
 
     for record in SeqIO.parse(input_file, "fasta"):
         if record.id == reference:
             reference_seq = record.seq.upper()
+            if record.id not in label_map:
+                label_map["reference"]=record.id
+            else:
+                label_map["reference"]=label_map[record.id]
         else:
             input_seqs[str(record.seq).upper()].append(record.id)
 
@@ -157,7 +194,7 @@ def find_ambiguities(alignment, snp_dict):
 
     return amb_dict
 
-def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,width,height,size_option):
+def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option):
     
     y_level = 0
     ref_vars = {}
@@ -223,6 +260,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,
 
         if not height:
             height = math.sqrt(num_seqs)*2
+            y_inc = 1
     # width and height of the figure
     fig, ax = plt.subplots(1,1, figsize=(width,height), dpi=250)
 
@@ -241,7 +279,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,
         ax.add_patch(rect)
 
         # for each record add the name to the left hand side
-        ax.text(-20, y_level, record, size=9, ha="right", va="center")
+        ax.text(-20, y_level, label_map[record], size=9, ha="right", va="center")
 
     position = 0
     for snp in sorted(snp_dict):
@@ -293,7 +331,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,colour_dict,length,
     rect = patches.Rectangle((0,(top_polygon)), length, y_inc ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
     ax.add_patch(rect)
 
-    ax.text(-20,  y_inc * -0.2, "Reference", size=9, ha="right", va="center")
+    ax.text(-20,  y_inc * -0.2, label_map["reference"], size=9, ha="right", va="center")
 
     ref_genome_position = y_inc*-2.7
 
