@@ -38,5 +38,5 @@ optional arguments:
 ### Install
 
 ```
-pip install git+https://github.com/aineniamh/snipit.git
+pip install snipit
 ```
