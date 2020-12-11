@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-from snipit import __version__
-import argparse
-import os
-import pkg_resources
-from . import _program
-from Bio import SeqIO
-import collections
-import snp_functions as sfunks
+
+# imports of built-ins
 import sys
+import os
+import argparse
+import pkg_resources
+import collections
+
+# imports from other modules
+from Bio import SeqIO
+
+# imports from this module
+from snipit import __version__
+from . import _program
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()

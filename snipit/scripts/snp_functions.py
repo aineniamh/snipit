@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
+
+# imports of built-ins
 import os
+import sys
 import argparse
+import collections
+from itertools import cycle
+import csv
+import math
+
+# imports from other modules
+from Bio import SeqIO
 import matplotlib as mpl
 from matplotlib import pyplot as plt
-import csv
-import collections
 import matplotlib.patches as patches
 from matplotlib.patches import Polygon
-from itertools import cycle
-import math
-import sys
-from Bio import SeqIO
 
 colour_list = ["lightgrey","white"]
 colour_cycle = cycle(colour_list)
