@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-from snipit import __version__
-import argparse
-import os
-import pkg_resources
-from . import _program
-from Bio import SeqIO
-import collections
-import snp_functions as sfunks
+
+# imports of built-ins
 import sys
+import os
+import argparse
+import pkg_resources
+import collections
+
+# imports from other modules
+from Bio import SeqIO
+
+# imports from this module
+from snipit import __version__
+from . import _program
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
@@ -31,6 +36,8 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--height",action="store",type=float,help="Overwrite the default figure height",default=0)
     parser.add_argument("--width",action="store",type=float,help="Overwrite the default figure width",default=0)
     parser.add_argument("--size-option",action="store",help="Specify options for sizing. Options: expand, scale",dest="size_option",default="scale")
+    
+    parser.add_argument("--flip-vertical",action='store_true',help="Flip the orientation of the plot so sequences are below the reference rather than above it.",dest="flip_vertical")
 
     parser.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")
 
@@ -69,7 +76,7 @@ def main(sysargs = sys.argv[1:]):
     sfunks.check_format(args.format)
     sfunks.check_size_option(args.size_option)
 
-    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,label_map,colours,length,args.width,args.height,args.size_option)
+    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,label_map,colours,length,args.width,args.height,args.size_option,args.flip_vertical)
 
 if __name__ == '__main__':
     main()
