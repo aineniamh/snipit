@@ -198,8 +198,6 @@ def find_ambiguities(alignment, snp_dict):
 
     return amb_dict
 
-def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option):
-    
 def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,flip_vertical=False):
     y_level = 0
     ref_vars = {}
@@ -269,7 +267,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
     # width and height of the figure
     fig, ax = plt.subplots(1,1, figsize=(width,height), dpi=250)
 
-    y_level =0
+    y_level = 0
 
     for record in snp_records:
 
@@ -284,12 +282,16 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
         ax.add_patch(rect)
 
         # for each record add the name to the left hand side
-        ax.text(-20, y_level, label_map[record], size=9, ha="right", va="center")
+        ax.text(-50, y_level, label_map[record], size=9, ha="right", va="center")
 
     position = 0
     for snp in sorted(snp_dict):
         position += spacing
-        ax.text(position, y_level+(0.5*y_inc), snp, size=9, ha="center", va="bottom", rotation=90)
+        
+        # write text adjacent to the SNPs shown with the numeric position
+        # the text alignment is toggled right/left (top/bottom considering 90-deg rotation) if the plot is flipped
+        ax.text(position, y_level+(0.55*y_inc), snp, size=9, ha="center", va="bottom" if not flip_vertical else "top", rotation=90)
+
         # snp position labels
         left_of_box = position-(0.4*spacing)
         right_of_box = position+(0.4*spacing)
@@ -302,7 +304,6 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
             name,ref,var,y_pos = sequence
             bottom_of_box = (y_pos*y_inc)-(0.5*y_inc)
             
-
             # draw box for snp
             if var in colour_dict:
                 rect = patches.Rectangle((left_of_box,bottom_of_box),spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()])
@@ -356,7 +357,12 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
     plt.yticks([])
             
     ax.set_xlim(0,length)
-    ax.set_ylim(ref_genome_position,y_level+(y_inc*1.05))
+    if not flip_vertical:
+        ax.set_ylim(ref_genome_position,y_level+(y_inc*1.05))
+    else:
+        ax.set_ylim(ref_genome_position,y_level+(y_inc*2.05))
+        ax.invert_yaxis() # must be called after axis limits are set
+
     ax.tick_params(axis='x', labelsize=8)
     plt.xlabel("Genome position (base)", fontsize=9)
     plt.tight_layout()
