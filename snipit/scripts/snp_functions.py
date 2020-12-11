@@ -200,6 +200,7 @@ def find_ambiguities(alignment, snp_dict):
 
 def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option):
     
+def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,flip_vertical=False):
     y_level = 0
     ref_vars = {}
     snp_dict = collections.defaultdict(list)
