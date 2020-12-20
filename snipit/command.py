@@ -13,6 +13,7 @@ from Bio import SeqIO
 # imports from this module
 from snipit import __version__
 from . import _program
+import snp_functions as sfunks
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
@@ -38,6 +39,9 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--size-option",action="store",help="Specify options for sizing. Options: expand, scale",dest="size_option",default="scale")
     
     parser.add_argument("--flip-vertical",action='store_true',help="Flip the orientation of the plot so sequences are below the reference rather than above it.",dest="flip_vertical")
+
+    parser.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences.")
+    parser.add_argument("--ignore-positions",dest="ignored_positions",action="store",nargs="+",type=int,help="positions to exclude",default=None)
 
     parser.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")
 
