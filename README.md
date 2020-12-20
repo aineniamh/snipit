@@ -30,6 +30,7 @@ optional arguments:
   --width WIDTH         Overwrite the default figure width
   --size-option SIZE_OPTION
                         Specify options for sizing. Options: expand, scale
+  --flip-vertical       Flip the orientation of the plot so sequences are below the reference rather than above it
   -c COLOUR_PALETTE, --colour-palette COLOUR_PALETTE
                         Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity
 ```
@@ -37,5 +38,5 @@ optional arguments:
 ### Install
 
 ```
-pip install git+https://github.com/aineniamh/snipit.git
+pip install snipit
 ```
