@@ -198,11 +198,12 @@ def find_ambiguities(alignment, snp_dict):
 
     return amb_dict
 
-def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,flip_vertical=False):
+def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,flip_vertical=False,ignored_positions=None,exclude_ambig_pos=False):
     y_level = 0
     ref_vars = {}
     snp_dict = collections.defaultdict(list)
-    
+    ignored_positions = set(ignored_positions) if ignored_positions is not None else set()
+
     for record in snp_records:
 
         # y level increments per record
@@ -227,11 +228,21 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
             for amb in amb_dict[record]:
                 # amb => 12345AN
                 x_position = int(amb[:-2])
-                base = amb[-1]
-                ref = amb[-2]
-                ref_vars[x_position]=ref
-                # Add name of record, ref, SNP in record, y_level
-                snp_dict[x_position].append((record, ref, base, y_level))
+
+                # if positions with any ambiguities should be ignored, note the position
+                if exclude_ambig_pos:
+                    ignored_positions.add(x_position)
+                else:
+                    base = amb[-1]
+                    ref = amb[-2]
+                    ref_vars[x_position]=ref
+                    # Add name of record, ref, SNP in record, y_level
+                    snp_dict[x_position].append((record, ref, base, y_level))
+
+    # remove positions which should be ignored
+    for pos in ignored_positions:
+        # remove records for the position, if present
+        snp_dict.pop(pos, None)
 
     spacing = length/(len(snp_dict)+1)
     y_inc = (spacing*0.8*y_level)/length
@@ -287,7 +298,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
     position = 0
     for snp in sorted(snp_dict):
         position += spacing
-        
+
         # write text adjacent to the SNPs shown with the numeric position
         # the text alignment is toggled right/left (top/bottom considering 90-deg rotation) if the plot is flipped
         ax.text(position, y_level+(0.55*y_inc), snp, size=9, ha="center", va="bottom" if not flip_vertical else "top", rotation=90)
@@ -303,7 +314,6 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
             
             name,ref,var,y_pos = sequence
             bottom_of_box = (y_pos*y_inc)-(0.5*y_inc)
-            
             # draw box for snp
             if var in colour_dict:
                 rect = patches.Rectangle((left_of_box,bottom_of_box),spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()])
