@@ -376,7 +376,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
     ax.tick_params(axis='x', labelsize=8)
     plt.xlabel("Genome position (base)", fontsize=9)
     plt.tight_layout()
-    plt.savefig(output)
+    plt.savefig(output, transparent=True)
 
 def get_colours(colour_palette):
     
