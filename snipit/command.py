@@ -66,7 +66,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--sort-by-mutation-number", action='store_true',
                         help="Render the graph with sequences sorted by the number of SNPs relative to the reference (fewest to most). Default: False", dest="sort_by_mutation_number")
     parser.add_argument("--high-to-low", action='store_false',
-                        help="If sorted by mutation number is selected, show the sequences with the most SNPs starting at the top. Default: False",
+                        help="If sorted by mutation number is selected, show the sequences with the fewest SNPs closest to the reference. Default: False",
                         dest="high_to_low")
 
     parser.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")

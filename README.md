@@ -39,7 +39,7 @@ optional arguments:
   --exclude-ambig-pos   Exclude positions with ambig base in any sequences. Considered after '--include-positions'
   --sort-by-mutation-number
                         Render the graph with sequences sorted by the number of SNPs relative to the reference (fewest to most). Default: False
-  --high-to-low         If sorted by mutation number is selected, show the sequences with the most SNPs starting at the top. Default: False
+  --high-to-low         If sorted by mutation number is selected, show the sequences with the fewest SNPs closest to the reference. Default: False
   -c COLOUR_PALETTE, --colour-palette COLOUR_PALETTE
                         Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity
 ```
