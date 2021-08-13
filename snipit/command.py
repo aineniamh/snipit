@@ -63,7 +63,11 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument('--include-positions', dest='included_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.")
     parser.add_argument('--exclude-positions', dest='excluded_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '--include-positions'.")
     parser.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences. Considered after '--include-positions'")
-
+    parser.add_argument("--sort-by-mutation-number", action='store_true',
+                        help="Render the graph with sequences sorted by the number of SNPs relative to the reference (fewest to most). Default: False", dest="sort_by_mutation_number")
+    parser.add_argument("--high-to-low", action='store_false',
+                        help="If sorted by mutation number is selected, show the sequences with the most SNPs starting at the top. Default: False",
+                        dest="high_to_low")
 
     parser.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")
 
@@ -102,9 +106,9 @@ def main(sysargs = sys.argv[1:]):
     sfunks.check_format(args.format)
     sfunks.check_size_option(args.size_option)
 
-    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,label_map,colours,length,args.width,args.height,args.size_option,args.flip_vertical,args.included_positions,args.excluded_positions,args.exclude_ambig_pos)
+    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,label_map,colours,length,args.width,args.height,args.size_option,args.flip_vertical,args.included_positions,args.excluded_positions,args.exclude_ambig_pos,
+                      args.sort_by_mutation_number,args.high_to_low)
+
 
 if __name__ == '__main__':
     main()
-
-    
