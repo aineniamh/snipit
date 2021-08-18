@@ -33,12 +33,13 @@ optional arguments:
                         Specify options for sizing. Options: expand, scale
   --flip-vertical       Flip the orientation of the plot so sequences are below the reference rather than above it.
   --include-positions INCLUDED_POSITIONS [INCLUDED_POSITIONS ...]
-                        One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered
-                        before '--exclude-positions'.
-  --exclude-positions IGNORED_POSITIONS [IGNORED_POSITIONS ...]
-                        One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '
-                        --include-positions'.
+                        One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.
+  --exclude-positions EXCLUDED_POSITIONS [EXCLUDED_POSITIONS ...]
+                        One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '--include-positions'.
   --exclude-ambig-pos   Exclude positions with ambig base in any sequences. Considered after '--include-positions'
+  --sort-by-mutation-number
+                        Render the graph with sequences sorted by the number of SNPs relative to the reference (fewest to most). Default: False
+  --high-to-low         If sorted by mutation number is selected, show the sequences with the fewest SNPs closest to the reference. Default: False
   -c COLOUR_PALETTE, --colour-palette COLOUR_PALETTE
                         Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity
 ```

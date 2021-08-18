@@ -8,6 +8,7 @@ import collections
 from itertools import cycle, chain
 import csv
 import math
+from collections import OrderedDict
 
 # imports from other modules
 from Bio import SeqIO
@@ -198,14 +199,26 @@ def find_ambiguities(alignment, snp_dict):
 
     return amb_dict
 
-def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,flip_vertical=False,included_positions=None,excluded_positions=None,exclude_ambig_pos=False):
+def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,
+               flip_vertical=False,included_positions=None,excluded_positions=None,exclude_ambig_pos=False,
+               sort_by_mutation_number=False,high_to_low=True):
     y_level = 0
     ref_vars = {}
     snp_dict = collections.defaultdict(list)
     included_positions = set(chain.from_iterable(included_positions)) if included_positions is not None else set()
-    excluded_positions  = set(chain.from_iterable(excluded_positions)) if excluded_positions is not None else set()
+    excluded_positions = set(chain.from_iterable(excluded_positions)) if excluded_positions is not None else set()
 
-    for record in snp_records:
+    if sort_by_mutation_number:
+        snp_counts = {}
+        for record in snp_records:
+            snp_counts[record] = int(len(snp_records[record]))
+        ordered_dict = dict(sorted(snp_counts.items(), key=lambda item: item[1], reverse=high_to_low))
+        record_order = list(OrderedDict(ordered_dict).keys())
+
+    else:
+        record_order = list(snp_records.keys())
+
+    for record in record_order:
 
         # y level increments per record
         y_level +=1
@@ -295,7 +308,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
 
     y_level = 0
 
-    for record in snp_records:
+    for record in record_order:
 
         # y position increments
         y_level += y_inc
