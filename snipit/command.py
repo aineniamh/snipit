@@ -60,6 +60,8 @@ def main(sysargs = sys.argv[1:]):
     
     parser.add_argument("--flip-vertical",action='store_true',help="Flip the orientation of the plot so sequences are below the reference rather than above it.",dest="flip_vertical")
 
+    parser.add_argument('--include-indels', action='store_true', dest='include_indels', default=False, help="Include indels in the snipit plot. Default = False")
+    
     parser.add_argument('--include-positions', dest='included_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.")
     parser.add_argument('--exclude-positions', dest='excluded_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '--include-positions'.")
     parser.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences. Considered after '--include-positions'")
@@ -97,9 +99,9 @@ def main(sysargs = sys.argv[1:]):
 
     reference,alignment = sfunks.get_ref_and_alignment(args.alignment,ref_input,label_map)
 
-    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment)
+    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment,args.include_indels)
 
-    record_ambs = sfunks.find_ambiguities(alignment, snp_dict)
+    record_ambs = sfunks.find_ambiguities(alignment, snp_dict, args.include_indels)
 
     colours = sfunks.get_colours(args.colour_palette)
 

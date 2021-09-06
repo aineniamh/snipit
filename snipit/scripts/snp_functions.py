@@ -147,9 +147,11 @@ def get_ref_and_alignment(input_file,reference,label_map):
 
     return reference_seq, input_seqs
 
-def find_snps(reference_seq,input_seqs):
+def find_snps(reference_seq,input_seqs,include_indels):
 
     non_amb = ["A","T","G","C"]
+    if include_indels:
+        non_amb.append('-')
     snp_dict = {}
     record_snps = {}
     snp_counter = collections.Counter()
@@ -171,8 +173,11 @@ def find_snps(reference_seq,input_seqs):
 
     return snp_dict,record_snps,len(snp_counter)
 
-def find_ambiguities(alignment, snp_dict):
-
+def find_ambiguities(alignment, snp_dict, include_indels):
+    if include_indels:
+        good_bases = ["A","T","G","C","-"]
+    else:
+        good_bases = ["A","T","G","C"]
     snp_sites = collections.defaultdict(list)
     for seq in snp_dict:
         snps = snp_dict[seq]
@@ -189,7 +194,7 @@ def find_ambiguities(alignment, snp_dict):
         for i in snp_sites:
             bases = [query_seq[i],snp_sites[i]]
             if bases[0] != bases[1]:
-                if bases[0] not in ["A","T","G","C"]:
+                if bases[0] not in good_bases:
                     
                     snp = f"{i+1}{bases[1]}{bases[0]}" # position-outgroup-query
                     snps.append(snp)
@@ -408,13 +413,13 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
 
 def get_colours(colour_palette):
     
-    palettes = {"classic": {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue"},
-                "wes": {"A":"#CC8B3C","C":"#456355","T":"#541F12","G":"#B62A3D"}, 
-                "primary": {"A":"green","C":"goldenrod","T":"steelblue","G":"indianred"},
-                "purine-pyrimidine":{"A":"indianred","C":"teal","T":"teal","G":"indianred"},
-                "greyscale":{"A":"#CCCCCC","C":"#999999","T":"#666666","G":"#333333"},
-                "blues":{"A":"#3DB19D","C":"#76C5BF","T":"#423761","G":"steelblue"},
-                "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251"}
+    palettes = {"classic": {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue","-":"goldenrod"},
+                "wes": {"A":"#CC8B3C","C":"#456355","T":"#541F12","G":"#B62A3D","-":"#DAECED"}, 
+                "primary": {"A":"green","C":"goldenrod","T":"steelblue","G":"indianred","-":"#FDDDA4"},
+                "purine-pyrimidine":{"A":"indianred","C":"teal","T":"teal","G":"indianred","-":"#FCD16B"},
+                "greyscale":{"A":"#CCCCCC","C":"#999999","T":"#666666","G":"#333333","-":"#565656"},
+                "blues":{"A":"#3DB19D","C":"#76C5BF","T":"#423761","G":"steelblue","-":"#7496D2"},
+                "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251","-":"#F7B0AA"}
                 }
     if colour_palette not in palettes:
         sys.stderr.write(red(f"Error: please select one of {palettes} for --colour-palette option\n"))

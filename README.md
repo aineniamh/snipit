@@ -32,6 +32,7 @@ optional arguments:
   --size-option SIZE_OPTION
                         Specify options for sizing. Options: expand, scale
   --flip-vertical       Flip the orientation of the plot so sequences are below the reference rather than above it.
+  --include-indels      Include indels in the snipit plot. Default = False
   --include-positions INCLUDED_POSITIONS [INCLUDED_POSITIONS ...]
                         One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.
   --exclude-positions EXCLUDED_POSITIONS [EXCLUDED_POSITIONS ...]
