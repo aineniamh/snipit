@@ -8,6 +8,7 @@ import collections
 from itertools import cycle
 import csv
 import math
+from itertools import groupby, count
 
 # imports from other modules
 from Bio import SeqIO
@@ -146,29 +147,61 @@ def get_ref_and_alignment(input_file,reference,label_map):
 
     return reference_seq, input_seqs
 
+def merge_indels(indel_list,prefix):
+    if indel_list:
+        groups = groupby(indel_list, key=lambda item, c=count():item-next(c))
+        tmp = [list(g) for k, g in groups]
+        merged_indels = []
+        for i in tmp:
+            indel = f"{i[0]}:{prefix}{len(i)}"
+            merged_indels.append(indel)
+        return merged_indels
+    
+    return indel_list
+
 def find_snps(reference_seq,input_seqs):
 
     non_amb = ["A","T","G","C"]
     snp_dict = {}
+    
     record_snps = {}
-    snp_counter = collections.Counter()
+    var_counter = collections.Counter()
     for query_seq in input_seqs:
         snps =[]
-
+        insertions = []
+        deletions = []
         for i in range(len(query_seq)):
             bases = [query_seq[i],reference_seq[i]]
             if bases[0] != bases[1]:
                 if bases[0] in non_amb and bases[1] in non_amb:
                     
-                    snp = f"{i+1}{bases[1]}{bases[0]}" # position-reference-query
-                    snp_counter[snp]+=1
+                    snp = f"{i+1}:{bases[1]}{bases[0]}" # position-reference-query
+                    
                     snps.append(snp)
-        snp_dict[query_seq] = snps
+                elif bases[0]=='-':
+                #if there's a gap in the query, means a deletion
+                    deletions.append(i+1)
+                elif bases[1]=='-':
+                    #if there's a gap in the ref, means an insertion
+                    insertions.append(i+1)
+        
+        insertions = merge_indels(insertions,"ins")
+        deletions = merge_indels(deletions,"del")
+
+        variants = []
+        for var_list in [snps,insertions,deletions]:
+            for var in var_list:
+                var_counter[var]+=1
+                variants.append(var)
+
+        variants = sorted(variants, key = lambda x : int(x.split(":")[0]))
+
+        snp_dict[query_seq] = variants
 
         for record in input_seqs[query_seq]:
-            record_snps[record] = snps
+            record_snps[record] = variants
 
-    return snp_dict,record_snps,len(snp_counter)
+    return snp_dict,record_snps,len(var_counter)
 
 def find_ambiguities(alignment, snp_dict):
 
@@ -176,7 +209,7 @@ def find_ambiguities(alignment, snp_dict):
     for seq in snp_dict:
         snps = snp_dict[seq]
         for snp in snps:
-            x_position = int(snp[:-2])-1
+            x_position = int(snp.split(":")[0])-1
             ref = snp[-2]
             snp_sites[x_position]=ref
 
@@ -188,9 +221,9 @@ def find_ambiguities(alignment, snp_dict):
         for i in snp_sites:
             bases = [query_seq[i],snp_sites[i]]
             if bases[0] != bases[1]:
-                if bases[0] not in ["A","T","G","C"]:
+                if bases[0] not in ["A","T","G","C","-"]:
                     
-                    snp = f"{i+1}{bases[1]}{bases[0]}" # position-outgroup-query
+                    snp = f"{i+1}:{bases[1]}{bases[0]}" # position-outgroup-query
                     snps.append(snp)
         
         for record in alignment[query_seq]:
@@ -216,9 +249,20 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
         
         for snp in snps:
             # snp => 12345AT
-            x_position = int(snp[:-2])
-            base = snp[-1]
-            ref = snp[-2]
+            pos,var = snp.split(":")
+            x_position = int(pos)
+            if var.startswith("del"): 
+                length_indel = var[3:]
+                ref = f"{length_indel}"
+                base = "-"
+            elif var.startswith("ins"):
+                length_indel = var[3:]
+                ref = "-"
+                base = f"{length_indel}"
+            else:
+                base = var[0]
+                ref = var[1]
+
             ref_vars[x_position]=ref
             # Add name of record, ref, SNP in record, y_level
             snp_dict[x_position].append((record, ref, base, y_level))
@@ -227,17 +271,17 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
         if record in amb_dict:
             for amb in amb_dict[record]:
                 # amb => 12345AN
-                x_position = int(amb[:-2])
+                x_position = int(amb.split(":")[0])
 
                 # if positions with any ambiguities should be ignored, note the position
                 if exclude_ambig_pos:
                     ignored_positions.add(x_position)
                 else:
                     base = amb[-1]
-                    ref = amb[-2]
-                    ref_vars[x_position]=ref
+                    amb_ref = amb[-2]
+                    ref_vars[x_position]=amb_ref
                     # Add name of record, ref, SNP in record, y_level
-                    snp_dict[x_position].append((record, ref, base, y_level))
+                    snp_dict[x_position].append((record, amb_ref, base, y_level))
 
     # remove positions which should be ignored
     for pos in ignored_positions:
@@ -326,6 +370,8 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
             ax.text(position, y_pos*y_inc, var, size=9, ha="center", va="center")
 
         # reference variant text
+        print(snp, ref)
+        print(snp_dict[snp])
         ax.text(position, y_inc * -0.2, ref, size=9, ha="center", va="center") 
 
         #polygon showing mapping from genome to spaced out snps
