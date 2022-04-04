@@ -201,7 +201,7 @@ def find_ambiguities(alignment, snp_dict):
 
 def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,
                flip_vertical=False,included_positions=None,excluded_positions=None,exclude_ambig_pos=False,
-               sort_by_mutation_number=False,high_to_low=True):
+               sort_by_mutation_number=False,high_to_low=True,sort_by_id=False):
     y_level = 0
     ref_vars = {}
     snp_dict = collections.defaultdict(list)
@@ -214,7 +214,10 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
             snp_counts[record] = int(len(snp_records[record]))
         ordered_dict = dict(sorted(snp_counts.items(), key=lambda item: item[1], reverse=high_to_low))
         record_order = list(OrderedDict(ordered_dict).keys())
-
+    
+    elif sort_by_id:
+        record_order = list(sorted(snp_records.keys())) 
+    
     else:
         record_order = list(snp_records.keys())
 
