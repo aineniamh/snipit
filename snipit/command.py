@@ -65,6 +65,9 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences. Considered after '--include-positions'")
     parser.add_argument("--sort-by-mutation-number", action='store_true',
                         help="Render the graph with sequences sorted by the number of SNPs relative to the reference (fewest to most). Default: False", dest="sort_by_mutation_number")
+    parser.add_argument("--sort-by-id", action='store_true',
+                        help="Sort sequences alphabetically by sequence id. Default: False", dest="sort_by_id")
+    parser.add_argument("--sort-by-mutations", type=str, help="Sort sequences by bases at specified positions. Positions are comma separated integers. Ex. '1,2,3'", dest="sort_by_mutations")
     parser.add_argument("--high-to-low", action='store_false',
                         help="If sorted by mutation number is selected, show the sequences with the fewest SNPs closest to the reference. Default: False",
                         dest="high_to_low")
@@ -107,7 +110,7 @@ def main(sysargs = sys.argv[1:]):
     sfunks.check_size_option(args.size_option)
 
     sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,label_map,colours,length,args.width,args.height,args.size_option,args.flip_vertical,args.included_positions,args.excluded_positions,args.exclude_ambig_pos,
-                      args.sort_by_mutation_number,args.high_to_low)
+                      args.sort_by_mutation_number,args.high_to_low,args.sort_by_id,args.sort_by_mutations)
 
 
 if __name__ == '__main__':
