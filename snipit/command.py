@@ -13,10 +13,30 @@ from Bio import SeqIO
 # imports from this module
 from snipit import __version__
 from . import _program
-import snp_functions as sfunks
+from snipit.scripts import snp_functions as sfunks
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
+
+def bp_range(s):
+    """
+        Crude function to parse positions or position ranges (inclusive) passed as a string by argparse.
+        Input: string in the format "100-200" or "100"
+        Returns a list with integer positions.
+        Arguably better solved by a regex, but still would need to typecast
+    """
+    # try to parse as a range
+    try:
+        start,end = map(int, s.split('-'))
+        return list(range(start,end+1))
+    except ValueError:
+        # if range parsing fails, perhaps it's only one position. try to parse as a single int
+        try: 
+            pos = int(s)
+            return [pos]
+        except ValueError:
+            raise argparse.ArgumentTypeError("Coordinates must be in the format 'start-end' or 'pos'")
+        
 
 def main(sysargs = sys.argv[1:]):
 
@@ -40,8 +60,17 @@ def main(sysargs = sys.argv[1:]):
     
     parser.add_argument("--flip-vertical",action='store_true',help="Flip the orientation of the plot so sequences are below the reference rather than above it.",dest="flip_vertical")
 
-    parser.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences.")
-    parser.add_argument("--ignore-positions",dest="ignored_positions",action="store",nargs="+",type=int,help="positions to exclude",default=None)
+    parser.add_argument('--include-positions', dest='included_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.")
+    parser.add_argument('--exclude-positions', dest='excluded_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '--include-positions'.")
+    parser.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences. Considered after '--include-positions'")
+    parser.add_argument("--sort-by-mutation-number", action='store_true',
+                        help="Render the graph with sequences sorted by the number of SNPs relative to the reference (fewest to most). Default: False", dest="sort_by_mutation_number")
+    parser.add_argument("--sort-by-id", action='store_true',
+                        help="Sort sequences alphabetically by sequence id. Default: False", dest="sort_by_id")
+    parser.add_argument("--sort-by-mutations", type=str, help="Sort sequences by bases at specified positions. Positions are comma separated integers. Ex. '1,2,3'", dest="sort_by_mutations")
+    parser.add_argument("--high-to-low", action='store_false',
+                        help="If sorted by mutation number is selected, show the sequences with the fewest SNPs closest to the reference. Default: False",
+                        dest="high_to_low")
 
     parser.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")
 
@@ -80,9 +109,9 @@ def main(sysargs = sys.argv[1:]):
     sfunks.check_format(args.format)
     sfunks.check_size_option(args.size_option)
 
-    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,label_map,colours,length,args.width,args.height,args.size_option,args.flip_vertical)
+    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,label_map,colours,length,args.width,args.height,args.size_option,args.flip_vertical,args.included_positions,args.excluded_positions,args.exclude_ambig_pos,
+                      args.sort_by_mutation_number,args.high_to_low,args.sort_by_id,args.sort_by_mutations)
+
 
 if __name__ == '__main__':
     main()
-
-    

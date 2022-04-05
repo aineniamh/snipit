@@ -5,9 +5,10 @@ import os
 import sys
 import argparse
 import collections
-from itertools import cycle
+from itertools import cycle, chain
 import csv
 import math
+from collections import OrderedDict
 
 # imports from other modules
 from Bio import SeqIO
@@ -198,13 +199,46 @@ def find_ambiguities(alignment, snp_dict):
 
     return amb_dict
 
-def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,flip_vertical=False,ignored_positions=None,exclude_ambig_pos=False):
+def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,
+               flip_vertical=False,included_positions=None,excluded_positions=None,exclude_ambig_pos=False,
+               sort_by_mutation_number=False,high_to_low=True,sort_by_id=False,sort_by_mutations=False):
     y_level = 0
     ref_vars = {}
     snp_dict = collections.defaultdict(list)
-    ignored_positions = set(ignored_positions) if ignored_positions is not None else set()
+    included_positions = set(chain.from_iterable(included_positions)) if included_positions is not None else set()
+    excluded_positions = set(chain.from_iterable(excluded_positions)) if excluded_positions is not None else set()
 
-    for record in snp_records:
+    if sort_by_mutation_number:
+        snp_counts = {}
+        for record in snp_records:
+            snp_counts[record] = int(len(snp_records[record]))
+        ordered_dict = dict(sorted(snp_counts.items(), key=lambda item: item[1], reverse=high_to_low))
+        record_order = list(OrderedDict(ordered_dict).keys())
+    
+    elif sort_by_id:
+        record_order = list(sorted(snp_records.keys())) 
+
+    elif sort_by_mutations:
+        mutations = sort_by_mutations.split(",")
+        sortable_record = {}
+        for record in snp_records:
+            bases = []
+            for sort_mutation in mutations:
+                found = False
+                for record_mutation in snp_records[record]:
+                    if int(record_mutation[:-2]) == int(sort_mutation):
+                        bases.append(record_mutation[-1])
+                        found = True
+                        break
+                if not found:
+                    bases.append("0")
+            sortable_record[record] = "".join(bases) + record
+        record_order = list(OrderedDict(sorted(sortable_record.items(), key=lambda item: item[1], reverse=high_to_low)).keys())
+    
+    else:
+        record_order = list(snp_records.keys())
+
+    for record in record_order:
 
         # y level increments per record
         y_level +=1
@@ -231,7 +265,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
 
                 # if positions with any ambiguities should be ignored, note the position
                 if exclude_ambig_pos:
-                    ignored_positions.add(x_position)
+                    excluded_positions.add(x_position)
                 else:
                     base = amb[-1]
                     ref = amb[-2]
@@ -239,8 +273,16 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
                     # Add name of record, ref, SNP in record, y_level
                     snp_dict[x_position].append((record, ref, base, y_level))
 
-    # remove positions which should be ignored
-    for pos in ignored_positions:
+    # gather the positions that are not explicitly excluded,
+    # but are not among those to be included
+    positions_not_included=set()
+    if len(included_positions)>0:
+        # of the positions present, 
+        # gather a set of positions which should NOT be included in the output
+        positions_not_included = set(snp_dict.keys()) - included_positions
+
+    # remove positions which should be ignored or are not included (pop items from union of the two sets)
+    for pos in excluded_positions | positions_not_included:
         # remove records for the position, if present
         snp_dict.pop(pos, None)
 
@@ -275,12 +317,18 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
         if not height:
             height = math.sqrt(num_seqs)*2
             y_inc = 1
+
+    # if the plot is flipped vertically, place the x-axis (genome map) labels on top
+    if flip_vertical:
+        plt.rcParams['xtick.bottom'] = plt.rcParams['xtick.labelbottom'] = False
+        plt.rcParams['xtick.top'] = plt.rcParams['xtick.labeltop'] = True
+
     # width and height of the figure
     fig, ax = plt.subplots(1,1, figsize=(width,height), dpi=250)
 
     y_level = 0
 
-    for record in snp_records:
+    for record in record_order:
 
         # y position increments
         y_level += y_inc
