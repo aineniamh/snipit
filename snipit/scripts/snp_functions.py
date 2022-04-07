@@ -147,8 +147,8 @@ def get_ref_and_alignment(input_file,reference,label_map):
 
     return reference_seq, input_seqs
 
-def find_snps(reference_seq,input_seqs):
 
+def find_snps(reference_seq,input_seqs):
     non_amb = ["A","T","G","C"]
     snp_dict = {}
     record_snps = {}
@@ -165,7 +165,7 @@ def find_snps(reference_seq,input_seqs):
                     snp_counter[snp]+=1
                     snps.append(snp)
         snp_dict[query_seq] = snps
-
+        
         for record in input_seqs[query_seq]:
             record_snps[record] = snps
 
@@ -196,12 +196,49 @@ def find_ambiguities(alignment, snp_dict):
         
         for record in alignment[query_seq]:
             amb_dict[record] = snps
-
+    #print(snp_dict)
     return amb_dict
+
+
+def recombi_ref_snps(recombi_references, snp_records):
+    
+    #print(recombi_references)
+    recombi_refs = recombi_references.split(",")
+    recombi_snps = []
+    #print(recombi_refs)
+    for ref in recombi_refs:
+        recombi_snps.append(snp_records[ref])
+    
+    #print(recombi_snps)
+    return recombi_snps,recombi_refs
+
+def recombi_painter(snp_to_check,recombi_snps):
+    
+    recombi_ref_1 = recombi_snps[0]
+    recombi_ref_2 = recombi_snps[1]
+    common_snps = []
+    
+    for snp in recombi_ref_1:
+        if snp in recombi_ref_2:
+            common_snps.append(snp)
+
+    if snp_to_check in common_snps:
+        return "Both"
+    elif snp_to_check in recombi_ref_1:
+        return "lineage_1"
+    elif snp_to_check in recombi_ref_2:
+        return "lineage_2"
+    else:
+        return "Private"
+
+
+
+
+
 
 def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,
                flip_vertical=False,included_positions=None,excluded_positions=None,exclude_ambig_pos=False,
-               sort_by_mutation_number=False,high_to_low=True,sort_by_id=False,sort_by_mutations=False):
+               sort_by_mutation_number=False,high_to_low=True,sort_by_id=False,sort_by_mutations=False,recombi_mode=False,recombi_references=[]):
     y_level = 0
     ref_vars = {}
     snp_dict = collections.defaultdict(list)
@@ -237,11 +274,26 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
     
     else:
         record_order = list(snp_records.keys())
+    
+    if recombi_mode:
+        # Get a list of SNPs present in each recombi_reference
+        recombi_snps,recombi_refs = recombi_ref_snps(recombi_references, snp_records)
+        # Set the colour palette to "recombi"
+        colour_dict = get_colours("recombi")
+        # Reorder list to put recombi_references at the start
+        record_order.remove(recombi_refs[0])
+        record_order.insert(0, recombi_refs[0])
+        record_order.remove(recombi_refs[1])
+        record_order.insert(1, recombi_refs[1])
 
     for record in record_order:
 
-        # y level increments per record
-        y_level +=1
+        # y level increments per record, add a gap after the two recombi_refs
+        if recombi_mode and y_level == 2:
+            y_level += 1.2
+            
+        else:
+            y_level +=1
 
         # for each record get the list of snps
         snps = snp_records[record]
@@ -254,9 +306,14 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
             base = snp[-1]
             ref = snp[-2]
             ref_vars[x_position]=ref
-            # Add name of record, ref, SNP in record, y_level
-            snp_dict[x_position].append((record, ref, base, y_level))
-
+            if recombi_mode:
+                recombi_out = recombi_painter(snp, recombi_snps)
+                # Add name of record, ref, SNP in record, y_level, if SNP is in either recombi_reference...
+                snp_dict[x_position].append((record, ref, base, y_level, recombi_out))
+            else:
+                # ...otherwise add False instead to help the colour logic
+                snp_dict[x_position].append((record, ref, base, y_level, False))
+        
         # if there are ambiguities in that record, add them to the snp dict too
         if record in amb_dict:
             for amb in amb_dict[record]:
@@ -270,8 +327,8 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
                     base = amb[-1]
                     ref = amb[-2]
                     ref_vars[x_position]=ref
-                    # Add name of record, ref, SNP in record, y_level
-                    snp_dict[x_position].append((record, ref, base, y_level))
+                    # Add name of record, ref, SNP in record, y_level and False for "recombi_mode" colour logic
+                    snp_dict[x_position].append((record, ref, base, y_level, False))
 
     # gather the positions that are not explicitly excluded,
     # but are not among those to be included
@@ -330,9 +387,13 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
 
     for record in record_order:
 
-        # y position increments
-        y_level += y_inc
+        # y position increments, with a gap after the two recombi_refs 
+        if recombi_mode and y_level == 2:
+            y_level += y_inc + 0.2
+        else:
+            y_level += y_inc
 
+        
         # either grey or white
         col = next_colour()
 
@@ -344,6 +405,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
         ax.text(-50, y_level, label_map[record], size=9, ha="right", va="center")
 
     position = 0
+               
     for snp in sorted(snp_dict):
         position += spacing
 
@@ -360,11 +422,13 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
 
         for sequence in snp_dict[snp]:
             
-            name,ref,var,y_pos = sequence
+            name,ref,var,y_pos,recombi_out = sequence
             bottom_of_box = (y_pos*y_inc)-(0.5*y_inc)
             # draw box for snp
-            if var in colour_dict:
-                rect = patches.Rectangle((left_of_box,bottom_of_box),spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()])
+            if recombi_out:
+                rect = patches.Rectangle((left_of_box,bottom_of_box),spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[recombi_out])
+            elif var in colour_dict:
+                rect = patches.Rectangle((left_of_box,bottom_of_box),spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()]) 
             else:
                 rect = patches.Rectangle((left_of_box,bottom_of_box), spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor="dimgrey")
             
@@ -434,7 +498,8 @@ def get_colours(colour_palette):
                 "purine-pyrimidine":{"A":"indianred","C":"teal","T":"teal","G":"indianred"},
                 "greyscale":{"A":"#CCCCCC","C":"#999999","T":"#666666","G":"#333333"},
                 "blues":{"A":"#3DB19D","C":"#76C5BF","T":"#423761","G":"steelblue"},
-                "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251"}
+                "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251"},
+                "recombi":{"lineage_1":"steelblue","lineage_2":"indianred","Both":"darkseagreen","Private":"gold"}
                 }
     if colour_palette not in palettes:
         sys.stderr.write(red(f"Error: please select one of {palettes} for --colour-palette option\n"))

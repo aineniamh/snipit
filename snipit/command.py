@@ -73,7 +73,8 @@ def main(sysargs = sys.argv[1:]):
                         dest="high_to_low")
 
     parser.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")
-
+    parser.add_argument("--recombi-mode",action='store_true',dest="recombi_mode",help="Allow colouring of query seqeunces by mutations present in two 'recombi-references' from the input alignment fasta file")
+    parser.add_argument("--recombi-references",action='store',type=str,dest="recombi_references",help="Specify two comma separated sequence IDs in the input alignment to use as 'recombi-references'. Ex. Sequence_ID_A,Sequence_ID_B")
 
     if len(sysargs)<1:
         parser.print_help()
@@ -110,7 +111,7 @@ def main(sysargs = sys.argv[1:]):
     sfunks.check_size_option(args.size_option)
 
     sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,label_map,colours,length,args.width,args.height,args.size_option,args.flip_vertical,args.included_positions,args.excluded_positions,args.exclude_ambig_pos,
-                      args.sort_by_mutation_number,args.high_to_low,args.sort_by_id,args.sort_by_mutations)
+                      args.sort_by_mutation_number,args.high_to_low,args.sort_by_id,args.sort_by_mutations,args.recombi_mode,args.recombi_references)
 
 
 if __name__ == '__main__':
