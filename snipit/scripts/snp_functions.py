@@ -499,7 +499,7 @@ def get_colours(colour_palette):
                 "greyscale":{"A":"#CCCCCC","C":"#999999","T":"#666666","G":"#333333"},
                 "blues":{"A":"#3DB19D","C":"#76C5BF","T":"#423761","G":"steelblue"},
                 "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251"},
-                "recombi":{"lineage_1":"steelblue","lineage_2":"indianred","Both":"darkseagreen","Private":"gold"}
+                "recombi":{"lineage_1":"steelblue","lineage_2":"#EA5463","Both":"darkseagreen","Private":"goldenrod"}
                 }
     if colour_palette not in palettes:
         sys.stderr.write(red(f"Error: please select one of {palettes} for --colour-palette option\n"))
