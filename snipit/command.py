@@ -13,7 +13,7 @@ from Bio import SeqIO
 # imports from this module
 from snipit import __version__
 from . import _program
-from snipit.scripts import snp_functions as sfunks
+import snp_functions as sfunks
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
@@ -49,6 +49,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("-l","--labels", action="store",help="Optional csv file of labels to show in output snipit plot. Default: sequence names", dest="labels")
     parser.add_argument("--l-header", action="store",help="Comma separated string of column headers in label csv. First field indicates sequence name column, second the label column. Default: 'name,label'", dest="label_headers",default="name,label")
 
+    parser.add_argument("-s","--sequence-option",action="store",dest="sequence_option",help="Type of output sequences to display. Default: nt. Options: nt, aa. aa option requires a genbank reference file with features annotated.")
 
     parser.add_argument('-d',"--output-dir",action="store",help="Output directory. Default: current working directory", dest="output_dir")
     parser.add_argument('-o',"--output-file",action="store",help="Output file name stem. Default: snp_plot", default="snp_plot",dest="outfile")
@@ -82,9 +83,10 @@ def main(sysargs = sys.argv[1:]):
 
     num_seqs,ref_input,record_ids,length = sfunks.qc_alignment(args.alignment,args.reference,cwd)
         
-    
     if args.reference:
         ref_file,ref_input = sfunks.reference_qc(args.reference, record_ids,cwd)
+    
+    gene_features = sfunks.get_gene_features(ref_file, args.sequence_option)
 
     if not args.output_dir:
         output_dir = cwd

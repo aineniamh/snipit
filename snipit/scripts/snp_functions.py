@@ -66,6 +66,24 @@ def qc_alignment(alignment,reference,cwd):
     
     return num_seqs,ref_input,record_ids,lengths[0]
 
+def get_gene_features(record):
+    gene_coordinates = {}
+    gene_coordinates = {}
+    for feature in ref_file.features:
+        if feature.type == "CDS":
+            
+            coordinates = feature.location
+            
+            gene_name = feature.qualifiers["gene"][0] 
+            
+            if gene_name not in gene_coordinates:
+                gene_coordinates[gene_name] = feature   
+            else:
+                if len(feature) > len(gene_coordinates[gene_name]):
+                    gene_coordinates[gene_name] = feature
+
+    return gene_coordinates
+
 def reference_qc(reference, record_ids,cwd):
     ref_file = ""
     if "." in reference and reference.split(".")[-1] in ["gb","genbank"]:
