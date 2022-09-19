@@ -58,7 +58,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--height",action="store",type=float,help="Overwrite the default figure height",default=0)
     parser.add_argument("--width",action="store",type=float,help="Overwrite the default figure width",default=0)
     parser.add_argument("--size-option",action="store",help="Specify options for sizing. Options: expand, scale",dest="size_option",default="scale")
-    
+    parser.add_argument("--solid-background",action="store_true",help="Force the plot to have a solid background, rather than a transparent one.",dest="solid_background")
     parser.add_argument("--flip-vertical",action='store_true',help="Flip the orientation of the plot so sequences are below the reference rather than above it.",dest="flip_vertical")
 
     parser.add_argument('--include-positions', dest='included_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.")
@@ -113,8 +113,28 @@ def main(sysargs = sys.argv[1:]):
 
     sfunks.write_out_snps(args.write_snps,record_snps,output_dir)
 
-    sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,label_map,colours,length,args.width,args.height,args.size_option,args.flip_vertical,args.included_positions,args.excluded_positions,args.exclude_ambig_pos,
-                      args.sort_by_mutation_number,args.high_to_low,args.sort_by_id,args.sort_by_mutations,args.recombi_mode,args.recombi_references)
+    sfunks.make_graph(num_seqs,
+                        num_snps,
+                        record_ambs,
+                        record_snps,
+                        output,
+                        label_map,
+                        colours,
+                        length,
+                        args.width,
+                        args.height,
+                        args.size_option,
+                        args.solid_background,
+                        args.flip_vertical,
+                        args.included_positions,
+                        args.excluded_positions,
+                        args.exclude_ambig_pos,
+                      args.sort_by_mutation_number,
+                      args.high_to_low,
+                      args.sort_by_id,
+                      args.sort_by_mutations,
+                      args.recombi_mode,
+                      args.recombi_references)
 
 
 if __name__ == '__main__':

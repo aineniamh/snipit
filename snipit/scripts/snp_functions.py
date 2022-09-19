@@ -244,9 +244,29 @@ def write_out_snps(write_snps,record_snps,output_dir):
             fw.write(f"{record},{snps},{len(snps)}\n")
 
 
-def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,
-               flip_vertical=False,included_positions=None,excluded_positions=None,exclude_ambig_pos=False,
-               sort_by_mutation_number=False,high_to_low=True,sort_by_id=False,sort_by_mutations=False,recombi_mode=False,recombi_references=[]):
+def make_graph(num_seqs,
+                num_snps,
+                amb_dict,
+                snp_records,
+                output,
+                label_map,
+                colour_dict,
+                length,
+                width,
+                height,
+                size_option,
+                solid_background,
+               flip_vertical=False,
+               included_positions=None,
+               excluded_positions=None,
+               exclude_ambig_pos=False,
+               sort_by_mutation_number=False,
+               high_to_low=True,
+               sort_by_id=False,
+               sort_by_mutations=False,
+               recombi_mode=False,
+               recombi_references=[]
+               ):
     y_level = 0
     ref_vars = {}
     snp_dict = collections.defaultdict(list)
@@ -496,7 +516,10 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
     ax.tick_params(axis='x', labelsize=8)
     plt.xlabel("Genome position (base)", fontsize=9)
     plt.tight_layout()
-    plt.savefig(output, transparent=True)
+    if not solid_background:
+        plt.savefig(output, transparent=True)
+    else:
+        plt.savefig(output)
 
 def get_colours(colour_palette):
     
