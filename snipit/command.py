@@ -52,6 +52,7 @@ def main(sysargs = sys.argv[1:]):
 
     parser.add_argument('-d',"--output-dir",action="store",help="Output directory. Default: current working directory", dest="output_dir")
     parser.add_argument('-o',"--output-file",action="store",help="Output file name stem. Default: snp_plot", default="snp_plot",dest="outfile")
+    parser.add_argument('-s',"--write-snps",action="store_true",help="Write out the SNPs in a csv file.",dest="write_snps")
     parser.add_argument("-f","--format",action="store",help="Format options (png, jpg, pdf, svg, tiff) Default: png",default="png")
 
     parser.add_argument("--height",action="store",type=float,help="Overwrite the default figure height",default=0)
@@ -109,6 +110,8 @@ def main(sysargs = sys.argv[1:]):
 
     sfunks.check_format(args.format)
     sfunks.check_size_option(args.size_option)
+
+    sfunks.write_out_snps(args.write_snps,record_snps,output_dir)
 
     sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,output,label_map,colours,length,args.width,args.height,args.size_option,args.flip_vertical,args.included_positions,args.excluded_positions,args.exclude_ambig_pos,
                       args.sort_by_mutation_number,args.high_to_low,args.sort_by_id,args.sort_by_mutations,args.recombi_mode,args.recombi_references)

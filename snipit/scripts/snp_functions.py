@@ -54,7 +54,11 @@ def qc_alignment(alignment,reference,cwd):
         sys.exit(-1)
 
     if num_seqs == 1:
-        if reference.split(".")[-1] not in ["gb","genbank"]:
+        if reference:
+            if reference.split(".")[-1] not in ["gb","genbank"]:
+                sys.stderr.write(red(f"Error: alignment file must contain more than just the reference. Either provide a reference genbank file or add more sequences to your alignment.\n"))
+                sys.exit(-1)
+        else:
             sys.stderr.write(red(f"Error: alignment file must contain more than just the reference. Either provide a reference genbank file or add more sequences to your alignment.\n"))
             sys.exit(-1)
 
@@ -232,8 +236,12 @@ def recombi_painter(snp_to_check,recombi_snps):
         return "Private"
 
 
-
-
+def write_out_snps(write_snps,record_snps,output_dir):
+    with open(os.path.join(output_dir,"snps.csv"),"w") as fw:
+        fw.write("record,snps,num_snps\n")
+        for record in record_snps:
+            snps = ";".join(record_snps[record])
+            fw.write(f"{record},{snps},{len(snps)}\n")
 
 
 def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_dict,length,width,height,size_option,
