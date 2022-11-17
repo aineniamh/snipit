@@ -28,6 +28,12 @@ YELLOW = '\033[93m'
 CYAN = '\u001b[36m'
 DIM = '\033[2m'
 
+def check_ref(recombi_mode):
+    if recombi_mode:
+        sys.stderr.write(red(f"Error: Please explicitly state reference sequence when using `--recombi-mode`\n"))
+        sys.exit(-1)
+        
+
 def qc_alignment(alignment,reference,cwd):
     lengths = []
     lengths_info = []
@@ -98,6 +104,26 @@ def reference_qc(reference, record_ids,cwd):
         ref_input = reference
 
     return ref_file, ref_input
+
+
+def recombi_qc(recombi_refs, reference, record_ids,cwd):
+    recombi_refs = recombi_refs.split(",")
+    if not len(recombi_refs) == 2:
+        sys.stderr.write(red(f"Error: input 2 references separated by a comma for `--recombi-references`.\n"))
+        sys.exit(-1)
+    
+    for ref in recombi_refs:
+        if ref == "":
+            sys.stderr.write(red(f"Error: input 2 references separated by a comma for `--recombi-references`.\n"))
+            sys.exit(-1)
+        if ref == reference:
+            sys.stderr.write(red(f"Error: please input a distinct outgroup reference from the parent recombinant references specified in `--recombi-references`.\n"))
+            sys.exit(-1)
+        if ref not in record_ids:
+            sys.stderr.write(red(f"Error: please check references specified in `--recombi-references` match a sequence name in the input alignment.\n"))
+            sys.exit(-1)
+
+
 
 def label_map(record_ids,labels,column_names,cwd):
     seq_col,label_col = column_names.split(",")
@@ -482,6 +508,30 @@ def make_graph(num_seqs,
         rect = patches.Rectangle((left_of_box,top_polygon), spacing*0.8, y_inc,alpha=0.1, fill=True, edgecolor='none',facecolor="dimgrey")
         ax.add_patch(rect)
 
+    if len(snp_dict) == 0:
+        # snp position labels
+        left_of_box = position-(0.4*position)
+        right_of_box = position+(0.4*position)
+
+        top_polygon = y_inc * -0.7
+        bottom_polygon = y_inc * -1.7
+
+        for sequence in record_snps:
+            
+            name,ref,var,y_pos,recombi_out = sequence
+            bottom_of_box = (y_pos*y_inc)-(0.5*y_inc)
+            # draw box for snp
+            if recombi_out:
+                rect = patches.Rectangle((left_of_box,bottom_of_box),spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[recombi_out])
+            elif var in colour_dict:
+                rect = patches.Rectangle((left_of_box,bottom_of_box),spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()]) 
+            else:
+                rect = patches.Rectangle((left_of_box,bottom_of_box), spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor="dimgrey")
+            
+            ax.add_patch(rect)
+
+            # sequence variant text
+            ax.text(position, y_pos*y_inc, var, size=9, ha="center", va="center")
 
     # reference variant rectangle
     rect = patches.Rectangle((0,(top_polygon)), length, y_inc ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")

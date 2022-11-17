@@ -88,6 +88,11 @@ def main(sysargs = sys.argv[1:]):
     
     if args.reference:
         ref_file,ref_input = sfunks.reference_qc(args.reference, record_ids,cwd)
+    else:
+        sfunks.check_ref(args.recombi_mode)
+
+    if args.recombi_references:
+        sfunks.recombi_qc(args.recombi_references, args.reference, record_ids,cwd)
 
     if not args.output_dir:
         output_dir = cwd
