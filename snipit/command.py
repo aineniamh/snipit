@@ -73,6 +73,7 @@ def main(sysargs = sys.argv[1:]):
                         help="If sorted by mutation number is selected, show the sequences with the fewest SNPs closest to the reference. Default: False",
                         dest="high_to_low")
 
+    parser.add_argument("-v","--version", action='version', version=f"snipit {__version__}")
     parser.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")
     parser.add_argument("--recombi-mode",action='store_true',dest="recombi_mode",help="Allow colouring of query seqeunces by mutations present in two 'recombi-references' from the input alignment fasta file")
     parser.add_argument("--recombi-references",action='store',type=str,dest="recombi_references",help="Specify two comma separated sequence IDs in the input alignment to use as 'recombi-references'. Ex. Sequence_ID_A,Sequence_ID_B")
