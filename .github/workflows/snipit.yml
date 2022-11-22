@@ -11,8 +11,9 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-latest", "macos-latest"]
+        python-version: ["3.8", "3.9", "3.10"]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install snipit
         run: pip install -e .
       - name: Check snipit version
@@ -21,4 +22,4 @@ jobs:
         run: snipit docs/test_2.fasta | tee snipit.log
       - name: Run snipit output snps
         run: snipit docs/test_2.fasta -s | tee snipit_snps.log
-        
+
