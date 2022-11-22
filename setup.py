@@ -16,7 +16,7 @@ setup(name='snipit',
         ],
       description='snipit',
       url='https://github.com/aineniamh/snipit',
-      author='Aine OToole, Verity Hill',
+      author='Aine OToole',
       author_email='aine.otoole@ed.ac.uk',
       entry_points="""
       [console_scripts]
