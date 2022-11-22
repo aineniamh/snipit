@@ -1,0 +1,24 @@
+name: snipit
+on: [push, pull_request]
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  run_snipit_test:
+    name: snipit test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "macos-latest"]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install snipit
+        run: pip install -e .
+      - name: Check snipit version
+        run: snipit --version
+      - name: Run snipit with test data
+        run: snipit docs/test_2.fasta | tee snipit.log
+      - name: Run snipit output snps
+        run: snipit docs/test_2.fasta -s | tee snipit_snps.log
+        
