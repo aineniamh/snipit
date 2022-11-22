@@ -184,7 +184,7 @@ def find_snps(reference_seq,input_seqs):
                 elif bases[1]=='-':
                     #if there's a gap in the ref, means an insertion
                     insertions.append(i+1)
-        
+
         insertions = merge_indels(insertions,"ins")
         deletions = merge_indels(deletions,"del")
 
@@ -370,8 +370,7 @@ def make_graph(num_seqs,num_snps,amb_dict,snp_records,output,label_map,colour_di
             ax.text(position, y_pos*y_inc, var, size=9, ha="center", va="center")
 
         # reference variant text
-        print(snp, ref)
-        print(snp_dict[snp])
+
         ax.text(position, y_inc * -0.2, ref, size=9, ha="center", va="center") 
 
         #polygon showing mapping from genome to spaced out snps
