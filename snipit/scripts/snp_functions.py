@@ -561,22 +561,6 @@ def make_graph(num_seqs,
         top_polygon = y_inc * -0.7
         bottom_polygon = y_inc * -1.7
 
-        for sequence in record_snps:
-            
-            name,ref,var,y_pos,recombi_out = sequence
-            bottom_of_box = (y_pos*y_inc)-(0.5*y_inc)
-            # draw box for snp
-            if recombi_out:
-                rect = patches.Rectangle((left_of_box,bottom_of_box),spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[recombi_out])
-            elif var in colour_dict:
-                rect = patches.Rectangle((left_of_box,bottom_of_box),spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor=colour_dict[var.upper()]) 
-            else:
-                rect = patches.Rectangle((left_of_box,bottom_of_box), spacing*0.8,  y_inc,alpha=0.5, fill=True, edgecolor='none',facecolor="dimgrey")
-            
-            ax.add_patch(rect)
-
-            # sequence variant text
-            ax.text(position, y_pos*y_inc, var, size=9, ha="center", va="center")
 
     # reference variant rectangle
     rect = patches.Rectangle((0,(top_polygon)), length, y_inc ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
