@@ -49,7 +49,6 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("-l","--labels", action="store",help="Optional csv file of labels to show in output snipit plot. Default: sequence names", dest="labels")
     parser.add_argument("--l-header", action="store",help="Comma separated string of column headers in label csv. First field indicates sequence name column, second the label column. Default: 'name,label'", dest="label_headers",default="name,label")
 
-
     parser.add_argument('-d',"--output-dir",action="store",help="Output directory. Default: current working directory", dest="output_dir")
     parser.add_argument('-o',"--output-file",action="store",help="Output file name stem. Default: snp_plot", default="snp_plot",dest="outfile")
     parser.add_argument('-s',"--write-snps",action="store_true",help="Write out the SNPs in a csv file.",dest="write_snps")
@@ -61,6 +60,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--solid-background",action="store_true",help="Force the plot to have a solid background, rather than a transparent one.",dest="solid_background")
     parser.add_argument("--flip-vertical",action='store_true',help="Flip the orientation of the plot so sequences are below the reference rather than above it.",dest="flip_vertical")
 
+    parser.add_argument("--snps-only",action='store_true',help="Ignore insertion and deletion mutations and only plot SNPs (legacy behaviour).",dest="snps_only")
     parser.add_argument('--include-positions', dest='included_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.")
     parser.add_argument('--exclude-positions', dest='excluded_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '--include-positions'.")
     parser.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences. Considered after '--include-positions'")
@@ -108,7 +108,7 @@ def main(sysargs = sys.argv[1:]):
 
     reference,alignment = sfunks.get_ref_and_alignment(args.alignment,ref_input,label_map)
 
-    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment)
+    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment,args.snps_only)
 
     record_ambs = sfunks.find_ambiguities(alignment, snp_dict)
 

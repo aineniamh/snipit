@@ -190,7 +190,7 @@ def merge_indels(indel_list,prefix):
     
     return indel_list
 
-def find_snps(reference_seq,input_seqs):
+def find_snps(reference_seq,input_seqs,snps_only):
     non_amb = ["A","T","G","C"]
     snp_dict = {}
     
@@ -208,10 +208,10 @@ def find_snps(reference_seq,input_seqs):
                     snp = f"{i+1}:{bases[1]}{bases[0]}" # position-reference-query
                     
                     snps.append(snp)
-                elif bases[0]=='-':
+                elif bases[0]=='-' and not snps_only:
                 #if there's a gap in the query, means a deletion
                     deletions.append(i+1)
-                elif bases[1]=='-':
+                elif bases[1]=='-' and not snps_only:
                     #if there's a gap in the ref, means an insertion
                     insertions.append(i+1)
 
