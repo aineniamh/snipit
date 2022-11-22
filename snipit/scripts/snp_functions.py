@@ -299,7 +299,7 @@ def write_out_snps(write_snps,record_snps,output_dir):
         fw.write("record,snps,num_snps\n")
         for record in record_snps:
             snps = ";".join(record_snps[record])
-            fw.write(f"{record},{snps},{len(snps)}\n")
+            fw.write(f"{record},{snps},{len(record_snps[record])}\n")
 
 
 def make_graph(num_seqs,
