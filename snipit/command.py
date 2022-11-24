@@ -13,7 +13,11 @@ from Bio import SeqIO
 # imports from this module
 from snipit import __version__
 from . import _program
-from snipit.scripts import snp_functions as sfunks
+from snipit.utils import recombi
+
+from snipit.utils import snp_functions as sfunks
+from snipit.utils.colours import *
+import snipit.utils.input_qc as qc
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
@@ -84,16 +88,16 @@ def main(sysargs = sys.argv[1:]):
     else:
         args = parser.parse_args(sysargs)
 
-    num_seqs,ref_input,record_ids,length = sfunks.qc_alignment(args.alignment,args.reference,cwd)
+    num_seqs,ref_input,record_ids,length = qc.qc_alignment(args.alignment,args.reference,cwd)
         
     
     if args.reference:
-        ref_file,ref_input = sfunks.reference_qc(args.reference, record_ids,cwd)
+        ref_file,ref_input = qc.reference_qc(args.reference, record_ids,cwd)
     else:
-        sfunks.check_ref(args.recombi_mode)
+        recombi.check_ref(args.recombi_mode)
 
     if args.recombi_references:
-        sfunks.recombi_qc(args.recombi_references, args.reference, record_ids,cwd)
+        recombi.recombi_qc(args.recombi_references, args.reference, record_ids,cwd)
 
     if not args.output_dir:
         output_dir = cwd
@@ -118,11 +122,18 @@ def main(sysargs = sys.argv[1:]):
     sfunks.check_size_option(args.size_option)
 
     sfunks.write_out_snps(args.write_snps,record_snps,output_dir)
+    
+    record_order = sfunks.determine_record_order(record_snps,
+                                    args.sort_by_mutation_number,
+                                    args.high_to_low,
+                                    args.sort_by_id,
+                                    args.sort_by_mutations)
 
     sfunks.make_graph(num_seqs,
                         num_snps,
                         record_ambs,
                         record_snps,
+                        record_order,
                         output,
                         label_map,
                         colours,
@@ -135,10 +146,6 @@ def main(sysargs = sys.argv[1:]):
                         args.included_positions,
                         args.excluded_positions,
                         args.exclude_ambig_pos,
-                      args.sort_by_mutation_number,
-                      args.high_to_low,
-                      args.sort_by_id,
-                      args.sort_by_mutations,
                       args.recombi_mode,
                       args.recombi_references)
 

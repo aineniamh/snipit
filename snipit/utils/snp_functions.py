@@ -18,22 +18,9 @@ from matplotlib import pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.patches import Polygon
 
-colour_list = ["lightgrey","white"]
-colour_cycle = cycle(colour_list)
-END_FORMATTING = '\033[0m'
-BOLD = '\033[1m'
-UNDERLINE = '\033[4m'
-RED = '\033[31m'
-GREEN = '\033[32m'
-YELLOW = '\033[93m'
-CYAN = '\u001b[36m'
-DIM = '\033[2m'
+from snipit.utils import recombi
+from snipit.utils.colours import *
 
-def check_ref(recombi_mode):
-    if recombi_mode:
-        sys.stderr.write(red(f"Error: Please explicitly state reference sequence when using `--recombi-mode`\n"))
-        sys.exit(-1)
-        
 
 def qc_alignment(alignment,reference,cwd):
     lengths = []
@@ -107,25 +94,6 @@ def reference_qc(reference, record_ids,cwd):
     return ref_file, ref_input
 
 
-def recombi_qc(recombi_refs, reference, record_ids,cwd):
-    recombi_refs = recombi_refs.split(",")
-    if not len(recombi_refs) == 2:
-        sys.stderr.write(red(f"Error: input 2 references separated by a comma for `--recombi-references`.\n"))
-        sys.exit(-1)
-    
-    for ref in recombi_refs:
-        if ref == "":
-            sys.stderr.write(red(f"Error: input 2 references separated by a comma for `--recombi-references`.\n"))
-            sys.exit(-1)
-        if ref == reference:
-            sys.stderr.write(red(f"Error: please input a distinct outgroup reference from the parent recombinant references specified in `--recombi-references`.\n"))
-            sys.exit(-1)
-        if ref not in record_ids:
-            sys.stderr.write(red(f"Error: please check references specified in `--recombi-references` match a sequence name in the input alignment.\n"))
-            sys.exit(-1)
-
-
-
 def label_map(record_ids,labels,column_names,cwd):
     seq_col,label_col = column_names.split(",")
     
@@ -159,8 +127,6 @@ def label_map(record_ids,labels,column_names,cwd):
 
     return label_map
 
-def next_colour():
-    return next(colour_cycle)
 
 def get_ref_and_alignment(input_file,reference,label_map):
     input_seqs = collections.defaultdict(list)
@@ -184,6 +150,8 @@ def merge_indels(indel_list,prefix):
         tmp = [list(g) for k, g in groups]
         merged_indels = []
         for i in tmp:
+            if prefix == "del":
+
             indel = f"{i[0]}:{prefix}{len(i)}"
             merged_indels.append(indel)
         return merged_indels
@@ -200,6 +168,7 @@ def find_snps(reference_seq,input_seqs,show_indels):
         snps =[]
         insertions = []
         deletions = []
+        indel_info = {}
         for i in range(len(query_seq)):
             bases = [query_seq[i],reference_seq[i]]
             if bases[0] != bases[1]:
@@ -211,9 +180,11 @@ def find_snps(reference_seq,input_seqs,show_indels):
                 elif bases[0]=='-' and show_indels:
                 #if there's a gap in the query, means a deletion
                     deletions.append(i+1)
+                    indel_info[i+1] = bases
                 elif bases[1]=='-' and show_indels:
                     #if there's a gap in the ref, means an insertion
                     insertions.append(i+1)
+                    indel_info[i+1] = bases
 
         if show_indels:
             insertions = merge_indels(insertions,"ins")
@@ -265,36 +236,6 @@ def find_ambiguities(alignment, snp_dict):
     return amb_dict
 
 
-def recombi_ref_snps(recombi_references, snp_records):
-    
-    #print(recombi_references)
-    recombi_refs = recombi_references.split(",")
-    recombi_snps = []
-    #print(recombi_refs)
-    for ref in recombi_refs:
-        recombi_snps.append(snp_records[ref])
-    
-    #print(recombi_snps)
-    return recombi_snps,recombi_refs
-
-def recombi_painter(snp_to_check,recombi_snps):
-    
-    recombi_ref_1 = recombi_snps[0]
-    recombi_ref_2 = recombi_snps[1]
-    common_snps = []
-    
-    for snp in recombi_ref_1:
-        if snp in recombi_ref_2:
-            common_snps.append(snp)
-
-    if snp_to_check in common_snps:
-        return "Both"
-    elif snp_to_check in recombi_ref_1:
-        return "lineage_1"
-    elif snp_to_check in recombi_ref_2:
-        return "lineage_2"
-    else:
-        return "Private"
 
 
 def write_out_snps(write_snps,record_snps,output_dir):
@@ -305,34 +246,11 @@ def write_out_snps(write_snps,record_snps,output_dir):
             fw.write(f"{record},{snps},{len(record_snps[record])}\n")
 
 
-def make_graph(num_seqs,
-                num_snps,
-                amb_dict,
-                snp_records,
-                output,
-                label_map,
-                colour_dict,
-                length,
-                width,
-                height,
-                size_option,
-                solid_background,
-               flip_vertical=False,
-               included_positions=None,
-               excluded_positions=None,
-               exclude_ambig_pos=False,
-               sort_by_mutation_number=False,
-               high_to_low=True,
-               sort_by_id=False,
-               sort_by_mutations=False,
-               recombi_mode=False,
-               recombi_references=[]
-               ):
-    y_level = 0
-    ref_vars = {}
-    snp_dict = collections.defaultdict(list)
-    included_positions = set(chain.from_iterable(included_positions)) if included_positions is not None else set()
-    excluded_positions = set(chain.from_iterable(excluded_positions)) if excluded_positions is not None else set()
+def determine_record_order(snp_records,
+                sort_by_mutation_number,
+                high_to_low,
+                sort_by_id,
+                sort_by_mutations):
 
     if sort_by_mutation_number:
         snp_counts = {}
@@ -364,16 +282,40 @@ def make_graph(num_seqs,
     else:
         record_order = list(snp_records.keys())
     
+    return record_order
+
+def make_graph(num_seqs,
+                num_snps,
+                amb_dict,
+                snp_records,
+                record_order,
+                output,
+                label_map,
+                colour_dict,
+                length,
+                width,
+                height,
+                size_option,
+                solid_background,
+               flip_vertical=False,
+               included_positions=None,
+               excluded_positions=None,
+               exclude_ambig_pos=False,
+               recombi_mode=False,
+               recombi_references=[]
+               ):
+    y_level = 0
+    ref_vars = {}
+
+    snp_dict = collections.defaultdict(list)
+    included_positions = set(chain.from_iterable(included_positions)) if included_positions is not None else set()
+    excluded_positions = set(chain.from_iterable(excluded_positions)) if excluded_positions is not None else set()
+
+    
     if recombi_mode:
-        # Get a list of SNPs present in each recombi_reference
-        recombi_snps,recombi_refs = recombi_ref_snps(recombi_references, snp_records)
-        # Set the colour palette to "recombi"
-        colour_dict = get_colours("recombi")
-        # Reorder list to put recombi_references at the start
-        record_order.remove(recombi_refs[0])
-        record_order.insert(0, recombi_refs[0])
-        record_order.remove(recombi_refs[1])
-        record_order.insert(1, recombi_refs[1])
+
+        recombi.run_recombi(record_order,recombi_references,snp_records)
+
 
     for record in record_order:
 
@@ -604,24 +546,6 @@ def make_graph(num_seqs,
     else:
         plt.savefig(output)
 
-def get_colours(colour_palette):
-    
-    palettes = {"classic": {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue"},
-                "wes": {"A":"#CC8B3C","C":"#456355","T":"#541F12","G":"#B62A3D"}, 
-                "primary": {"A":"green","C":"goldenrod","T":"steelblue","G":"indianred"},
-                "purine-pyrimidine":{"A":"indianred","C":"teal","T":"teal","G":"indianred"},
-                "greyscale":{"A":"#CCCCCC","C":"#999999","T":"#666666","G":"#333333"},
-                "blues":{"A":"#3DB19D","C":"#76C5BF","T":"#423761","G":"steelblue"},
-                "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251"},
-                "recombi":{"lineage_1":"steelblue","lineage_2":"#EA5463","Both":"darkseagreen","Private":"goldenrod"}
-                }
-    if colour_palette not in palettes:
-        sys.stderr.write(red(f"Error: please select one of {palettes} for --colour-palette option\n"))
-        sys.exit(-1)
-    else:
-        colour_dict = palettes[colour_palette]
-
-    return colour_dict
 
 def check_size_option(s):
     size_options = ["expand", "scale"]
@@ -636,44 +560,3 @@ def check_format(f):
     if f not in formats:
         sys.stderr.write(red(f"Error: format specified not one of:\n - {f_string}\n"))
         sys.exit(-1)
-
-def colour(text, text_colour):
-    bold_text = 'bold' in text_colour
-    text_colour = text_colour.replace('bold', '')
-    underline_text = 'underline' in text_colour
-    text_colour = text_colour.replace('underline', '')
-    text_colour = text_colour.replace('_', '')
-    text_colour = text_colour.replace(' ', '')
-    text_colour = text_colour.lower()
-    if 'red' in text_colour:
-        coloured_text = RED
-    elif 'green' in text_colour:
-        coloured_text = GREEN
-    elif 'yellow' in text_colour:
-        coloured_text = YELLOW
-    elif 'dim' in text_colour:
-        coloured_text = DIM
-    elif 'cyan' in text_colour:
-        coloured_text = 'cyan'
-    else:
-        coloured_text = ''
-    if bold_text:
-        coloured_text += BOLD
-    if underline_text:
-        coloured_text += UNDERLINE
-    if not coloured_text:
-        return text
-    coloured_text += text + END_FORMATTING
-    return coloured_text
-
-def red(text):
-    return RED + text + END_FORMATTING
-
-def cyan(text):
-    return CYAN + text + END_FORMATTING
-
-def green(text):
-    return GREEN + text + END_FORMATTING
-
-def yellow(text):
-    return YELLOW + text + END_FORMATTING

@@ -9,7 +9,7 @@ from snipit import __version__, _program
 setup(name='snipit',
       version=__version__,
       packages=find_packages(),
-      scripts=["snipit/scripts/snp_functions.py"],
+      # scripts=["snipit/scripts/snp_functions.py"],
       install_requires=[
             "biopython>=1.70",
             "matplotlib>=3.2.1"
