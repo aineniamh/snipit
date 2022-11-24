@@ -60,7 +60,7 @@ def main(sysargs = sys.argv[1:]):
     parser.add_argument("--solid-background",action="store_true",help="Force the plot to have a solid background, rather than a transparent one.",dest="solid_background")
     parser.add_argument("--flip-vertical",action='store_true',help="Flip the orientation of the plot so sequences are below the reference rather than above it.",dest="flip_vertical")
 
-    parser.add_argument("--snps-only",action='store_true',help="Ignore insertion and deletion mutations and only plot SNPs (legacy behaviour).",dest="snps_only")
+    parser.add_argument("--show-indels",action='store_true',help="Include insertion and deletion mutations in snipit plot.",dest="show_indels")
     parser.add_argument('--include-positions', dest='included_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.")
     parser.add_argument('--exclude-positions', dest='excluded_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '--include-positions'.")
     parser.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences. Considered after '--include-positions'")
@@ -108,7 +108,7 @@ def main(sysargs = sys.argv[1:]):
 
     reference,alignment = sfunks.get_ref_and_alignment(args.alignment,ref_input,label_map)
 
-    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment,args.snps_only)
+    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment,args.show_indels)
 
     record_ambs = sfunks.find_ambiguities(alignment, snp_dict)
 

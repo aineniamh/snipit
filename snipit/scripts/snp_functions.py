@@ -190,7 +190,7 @@ def merge_indels(indel_list,prefix):
     
     return indel_list
 
-def find_snps(reference_seq,input_seqs,snps_only):
+def find_snps(reference_seq,input_seqs,show_indels):
     non_amb = ["A","T","G","C"]
     snp_dict = {}
     
@@ -204,19 +204,23 @@ def find_snps(reference_seq,input_seqs,snps_only):
             bases = [query_seq[i],reference_seq[i]]
             if bases[0] != bases[1]:
                 if bases[0] in non_amb and bases[1] in non_amb:
-                    
+                    """
+                    ref = var[0]
+                    base = var[1]
+                    """
                     snp = f"{i+1}:{bases[1]}{bases[0]}" # position-reference-query
                     
                     snps.append(snp)
-                elif bases[0]=='-' and not snps_only:
+                elif bases[0]=='-' and show_indels:
                 #if there's a gap in the query, means a deletion
                     deletions.append(i+1)
-                elif bases[1]=='-' and not snps_only:
+                elif bases[1]=='-' and show_indels:
                     #if there's a gap in the ref, means an insertion
                     insertions.append(i+1)
 
-        insertions = merge_indels(insertions,"ins")
-        deletions = merge_indels(deletions,"del")
+        if show_indels:
+            insertions = merge_indels(insertions,"ins")
+            deletions = merge_indels(deletions,"del")
 
         variants = []
         for var_list in [snps,insertions,deletions]:
@@ -239,9 +243,9 @@ def find_ambiguities(alignment, snp_dict):
     for seq in snp_dict:
         snps = snp_dict[seq]
         for snp in snps:
-            x_position = int(snp.split(":")[0])-1
-            ref = snp[-2]
-            snp_sites[x_position]=ref
+            index = int(snp.split(":")[0])-1
+            ref = snp[-2] #wont work for indels
+            snp_sites[index]=ref
 
     amb_dict = {}
     
@@ -251,7 +255,7 @@ def find_ambiguities(alignment, snp_dict):
         for i in snp_sites:
             bases = [query_seq[i],snp_sites[i]]
             if bases[0] != bases[1]:
-                if bases[0] not in ["A","T","G","C","-"]:
+                if bases[0] not in ["A","T","G","C"]:
                     
                     snp = f"{i+1}:{bases[1]}{bases[0]}" # position-outgroup-query
                     snps.append(snp)
@@ -399,8 +403,8 @@ def make_graph(num_seqs,
                 ref = "-"
                 base = f"{length_indel}"
             else:
-                base = var[0]
-                ref = var[1]
+                ref = var[0]
+                base = var[1]
 
             
             ref_vars[x_position]=ref
@@ -416,14 +420,15 @@ def make_graph(num_seqs,
         if record in amb_dict:
             for amb in amb_dict[record]:
                 # amb => 12345AN
-                x_position = int(amb[:-2])
+                pos,var = snp.split(":")
+                x_position = int(pos)
 
                 # if positions with any ambiguities should be ignored, note the position
                 if exclude_ambig_pos:
                     excluded_positions.add(x_position)
                 else:
-                    base = amb[-1]
-                    ref = amb[-2]
+                    ref = var[0]
+                    base = var[1]
                     ref_vars[x_position]=ref
                     # Add name of record, ref, SNP in record, y_level and False for "recombi_mode" colour logic
                     snp_dict[x_position].append((record, ref, base, y_level, False))
