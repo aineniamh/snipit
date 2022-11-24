@@ -204,10 +204,7 @@ def find_snps(reference_seq,input_seqs,show_indels):
             bases = [query_seq[i],reference_seq[i]]
             if bases[0] != bases[1]:
                 if bases[0] in non_amb and bases[1] in non_amb:
-                    """
-                    ref = var[0]
-                    base = var[1]
-                    """
+
                     snp = f"{i+1}:{bases[1]}{bases[0]}" # position-reference-query
                     
                     snps.append(snp)
@@ -243,9 +240,11 @@ def find_ambiguities(alignment, snp_dict):
     for seq in snp_dict:
         snps = snp_dict[seq]
         for snp in snps:
-            index = int(snp.split(":")[0])-1
-            ref = snp[-2] #wont work for indels
-            snp_sites[index]=ref
+            pos,var = snp.split(":")
+            index = int(pos)-1
+            
+            ref_allele = var[0]
+            snp_sites[index]=ref_allele
 
     amb_dict = {}
     
@@ -253,7 +252,7 @@ def find_ambiguities(alignment, snp_dict):
         snps =[]
 
         for i in snp_sites:
-            bases = [query_seq[i],snp_sites[i]]
+            bases = [query_seq[i],snp_sites[i]] #if query not same as ref allele
             if bases[0] != bases[1]:
                 if bases[0] not in ["A","T","G","C"]:
                     
@@ -262,7 +261,7 @@ def find_ambiguities(alignment, snp_dict):
         
         for record in alignment[query_seq]:
             amb_dict[record] = snps
-    #print(snp_dict)
+    
     return amb_dict
 
 
@@ -418,9 +417,9 @@ def make_graph(num_seqs,
         
         # if there are ambiguities in that record, add them to the snp dict too
         if record in amb_dict:
-            for amb in amb_dict[record]:
+            for amb in sorted(amb_dict[record]):
                 # amb => 12345AN
-                pos,var = snp.split(":")
+                pos,var = amb.split(":")
                 x_position = int(pos)
 
                 # if positions with any ambiguities should be ignored, note the position
