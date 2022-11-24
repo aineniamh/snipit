@@ -235,16 +235,12 @@ def find_ambiguities(alignment, snp_dict):
     
     return amb_dict
 
-
-
-
 def write_out_snps(write_snps,record_snps,output_dir):
     with open(os.path.join(output_dir,"snps.csv"),"w") as fw:
         fw.write("record,snps,num_snps\n")
         for record in record_snps:
             snps = ";".join(record_snps[record])
             fw.write(f"{record},{snps},{len(record_snps[record])}\n")
-
 
 def determine_record_order(snp_records,
                 sort_by_mutation_number,
@@ -297,12 +293,12 @@ def make_graph(num_seqs,
                 height,
                 size_option,
                 solid_background,
-               flip_vertical=False,
-               included_positions=None,
-               excluded_positions=None,
-               exclude_ambig_pos=False,
-               recombi_mode=False,
-               recombi_references=[]
+                flip_vertical=False,
+                included_positions=None,
+                excluded_positions=None,
+                exclude_ambig_pos=False,
+                recombi_mode=False,
+                recombi_references=[]
                ):
     y_level = 0
     ref_vars = {}
