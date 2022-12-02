@@ -150,8 +150,6 @@ def merge_indels(indel_list,prefix):
         tmp = [list(g) for k, g in groups]
         merged_indels = []
         for i in tmp:
-            if prefix == "del":
-
             indel = f"{i[0]}:{prefix}{len(i)}"
             merged_indels.append(indel)
         return merged_indels
