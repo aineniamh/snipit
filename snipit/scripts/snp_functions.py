@@ -430,6 +430,11 @@ def make_graph(num_seqs,
                     # Add name of record, ref, SNP in record, y_level and False for "recombi_mode" colour logic
                     snp_dict[x_position].append((record, ref, base, y_level, False))
 
+    # Remove all positions with 1 sequence having SNP only (singletons)
+    for pos, snp in snp_dict.items():
+        if len(snp) == 1:
+            excluded_positions.add(pos)
+
     # gather the positions that are not explicitly excluded,
     # but are not among those to be included
     positions_not_included=set()
