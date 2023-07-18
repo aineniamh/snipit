@@ -432,7 +432,7 @@ def make_graph(num_seqs,
 
     # Remove all positions with 1 sequence having SNP only (singletons)
     for pos, snp in snp_dict.items():
-        if len(snp) == 1:
+        if (len(snp) <= 3) or (len(snp) >= len(record_order) - 3):
             excluded_positions.add(pos)
 
     # gather the positions that are not explicitly excluded,
