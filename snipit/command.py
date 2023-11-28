@@ -18,25 +18,6 @@ from snipit.scripts import snp_functions as sfunks
 thisdir = os.path.abspath(os.path.dirname(__file__))
 cwd = os.getcwd()
 
-def bp_range(s):
-    """
-        Crude function to parse positions or position ranges (inclusive) passed as a string by argparse.
-        Input: string in the format "100-200" or "100"
-        Returns a list with integer positions.
-        Arguably better solved by a regex, but still would need to typecast
-    """
-    # try to parse as a range
-    try:
-        start,end = map(int, s.split('-'))
-        return list(range(start,end+1))
-    except ValueError:
-        # if range parsing fails, perhaps it's only one position. try to parse as a single int
-        try: 
-            pos = int(s)
-            return [pos]
-        except ValueError:
-            raise argparse.ArgumentTypeError("Coordinates must be in the format 'start-end' or 'pos'")
-        
 
 def main(sysargs = sys.argv[1:]):
 
@@ -44,39 +25,47 @@ def main(sysargs = sys.argv[1:]):
     description='snipit', 
     usage='''snipit <alignment> [options]''')
 
-    parser.add_argument('alignment',help="Input alignment fasta file")
-    parser.add_argument("-r","--reference", action="store",help="Indicates which sequence in the alignment is\nthe reference (by sequence ID).\nDefault: first sequence in alignment", dest="reference")
-    parser.add_argument("-l","--labels", action="store",help="Optional csv file of labels to show in output snipit plot. Default: sequence names", dest="labels")
-    parser.add_argument("--l-header", action="store",help="Comma separated string of column headers in label csv. First field indicates sequence name column, second the label column. Default: 'name,label'", dest="label_headers",default="name,label")
+    i_group = parser.add_argument_group('Input options')
+    i_group.add_argument('alignment',help="Input alignment fasta file")
+    i_group.add_argument("-r","--reference", action="store",help="Indicates which sequence in the alignment is\nthe reference (by sequence ID).\nDefault: first sequence in alignment", dest="reference")
+    i_group.add_argument("-l","--labels", action="store",help="Optional csv file of labels to show in output snipit plot. Default: sequence names", dest="labels")
+    i_group.add_argument("--l-header", action="store",help="Comma separated string of column headers in label csv. First field indicates sequence name column, second the label column. Default: 'name,label'", dest="label_headers",default="name,label")
 
-    parser.add_argument('-d',"--output-dir",action="store",help="Output directory. Default: current working directory", dest="output_dir")
-    parser.add_argument('-o',"--output-file",action="store",help="Output file name stem. Default: snp_plot", default="snp_plot",dest="outfile")
-    parser.add_argument('-s',"--write-snps",action="store_true",help="Write out the SNPs in a csv file.",dest="write_snps")
-    parser.add_argument("-f","--format",action="store",help="Format options (png, jpg, pdf, svg, tiff) Default: png",default="png")
+    m_group = parser.add_argument_group('Mode options')
+    m_group.add_argument("--recombi-mode",action='store_true',dest="recombi_mode",help="Allow colouring of query seqeunces by mutations present in two 'recombi-references' from the input alignment fasta file")
+    m_group.add_argument("--recombi-references",action='store',type=str,dest="recombi_references",help="Specify two comma separated sequence IDs in the input alignment to use as 'recombi-references'. Ex. Sequence_ID_A,Sequence_ID_B")
+    m_group.add_argument("--cds-mode",action="store_true",help="Assumes sequence supplied is a coding sequence")
 
-    parser.add_argument("--height",action="store",type=float,help="Overwrite the default figure height",default=0)
-    parser.add_argument("--width",action="store",type=float,help="Overwrite the default figure width",default=0)
-    parser.add_argument("--size-option",action="store",help="Specify options for sizing. Options: expand, scale",dest="size_option",default="scale")
-    parser.add_argument("--solid-background",action="store_true",help="Force the plot to have a solid background, rather than a transparent one.",dest="solid_background")
-    parser.add_argument("--flip-vertical",action='store_true',help="Flip the orientation of the plot so sequences are below the reference rather than above it.",dest="flip_vertical")
+    o_group = parser.add_argument_group('Output options')
+    o_group.add_argument('-d',"--output-dir",action="store",help="Output directory. Default: current working directory", dest="output_dir")
+    o_group.add_argument('-o',"--output-file",action="store",help="Output file name stem. Default: snp_plot", default="snp_plot",dest="outfile")
+    o_group.add_argument('-s',"--write-snps",action="store_true",help="Write out the SNPs in a csv file.",dest="write_snps")
+    o_group.add_argument("-f","--format",action="store",help="Format options (png, jpg, pdf, svg, tiff) Default: png",default="png")
 
-    parser.add_argument("--show-indels",action='store_true',help="Include insertion and deletion mutations in snipit plot.",dest="show_indels")
-    parser.add_argument('--include-positions', dest='included_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.")
-    parser.add_argument('--exclude-positions', dest='excluded_positions', type=bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '--include-positions'.")
-    parser.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences. Considered after '--include-positions'")
-    parser.add_argument("--sort-by-mutation-number", action='store_true',
+    f_group = parser.add_argument_group('Figure options')
+    f_group.add_argument("--height",action="store",type=float,help="Overwrite the default figure height",default=0)
+    f_group.add_argument("--width",action="store",type=float,help="Overwrite the default figure width",default=0)
+    f_group.add_argument("--size-option",action="store",help="Specify options for sizing. Options: expand, scale",dest="size_option",default="scale")
+    f_group.add_argument("--solid-background",action="store_true",help="Force the plot to have a solid background, rather than a transparent one.",dest="solid_background")
+    f_group.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")
+    f_group.add_argument("--flip-vertical",action='store_true',help="Flip the orientation of the plot so sequences are below the reference rather than above it.",dest="flip_vertical")
+    f_group.add_argument("--sort-by-mutation-number", action='store_true',
                         help="Render the graph with sequences sorted by the number of SNPs relative to the reference (fewest to most). Default: False", dest="sort_by_mutation_number")
-    parser.add_argument("--sort-by-id", action='store_true',
+    f_group.add_argument("--sort-by-id", action='store_true',
                         help="Sort sequences alphabetically by sequence id. Default: False", dest="sort_by_id")
-    parser.add_argument("--sort-by-mutations", type=str, help="Sort sequences by bases at specified positions. Positions are comma separated integers. Ex. '1,2,3'", dest="sort_by_mutations")
-    parser.add_argument("--high-to-low", action='store_false',
+    f_group.add_argument("--sort-by-mutations", type=str, help="Sort sequences by bases at specified positions. Positions are comma separated integers. Ex. '1,2,3'", dest="sort_by_mutations")
+    f_group.add_argument("--high-to-low", action='store_false',
                         help="If sorted by mutation number is selected, show the sequences with the fewest SNPs closest to the reference. Default: False",
                         dest="high_to_low")
 
-    parser.add_argument("-v","--version", action='version', version=f"snipit {__version__}")
-    parser.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")
-    parser.add_argument("--recombi-mode",action='store_true',dest="recombi_mode",help="Allow colouring of query seqeunces by mutations present in two 'recombi-references' from the input alignment fasta file")
-    parser.add_argument("--recombi-references",action='store',type=str,dest="recombi_references",help="Specify two comma separated sequence IDs in the input alignment to use as 'recombi-references'. Ex. Sequence_ID_A,Sequence_ID_B")
+    s_group = parser.add_argument_group('SNP options')
+    s_group.add_argument("--show-indels",action='store_true',help="Include insertion and deletion mutations in snipit plot.",dest="show_indels")
+    s_group.add_argument('--include-positions', dest='included_positions', type=sfunks.bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.")
+    s_group.add_argument('--exclude-positions', dest='excluded_positions', type=sfunks.bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '--include-positions'.")
+    s_group.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences. Considered after '--include-positions'")
+
+    misc_group = parser.add_argument_group('Misc options')
+    misc_group.add_argument("-v","--version", action='version', version=f"snipit {__version__}")
 
     if len(sysargs)<1:
         parser.print_help()
@@ -84,7 +73,7 @@ def main(sysargs = sys.argv[1:]):
     else:
         args = parser.parse_args(sysargs)
 
-    num_seqs,ref_input,record_ids,length = sfunks.qc_alignment(args.alignment,args.reference,cwd)
+    num_seqs,ref_input,record_ids,length = sfunks.qc_alignment(args.alignment,args.reference,args.cds_mode,cwd)
         
     
     if args.reference:

@@ -13,6 +13,7 @@ from collections import OrderedDict
 
 # imports from other modules
 from Bio import SeqIO
+from Bio.Seq import Seq
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 import matplotlib.patches as patches
@@ -29,13 +30,35 @@ YELLOW = '\033[93m'
 CYAN = '\u001b[36m'
 DIM = '\033[2m'
 
+
+def bp_range(s):
+    """
+        Crude function to parse positions or position ranges (inclusive) passed as a string by argparse.
+        Input: string in the format "100-200" or "100"
+        Returns a list with integer positions.
+        Arguably better solved by a regex, but still would need to typecast
+    """
+    # try to parse as a range
+    try:
+        start,end = map(int, s.split('-'))
+        return list(range(start,end+1))
+    except ValueError:
+        # if range parsing fails, perhaps it's only one position. try to parse as a single int
+        try: 
+            pos = int(s)
+            return [pos]
+        except ValueError:
+            raise argparse.ArgumentTypeError("Coordinates must be in the format 'start-end' or 'pos'")
+        
+
+
 def check_ref(recombi_mode):
     if recombi_mode:
         sys.stderr.write(red(f"Error: Please explicitly state reference sequence when using `--recombi-mode`\n"))
         sys.exit(-1)
 
 
-def qc_alignment(alignment,reference,cwd):
+def qc_alignment(alignment,reference,cds_mode,cwd):
     lengths = []
     lengths_info = []
     num_seqs = 0
@@ -68,11 +91,15 @@ def qc_alignment(alignment,reference,cwd):
         else:
             sys.stderr.write(red(f"Error: alignment file must contain more than just the reference. Either provide a reference genbank file or add more sequences to your alignment.\n"))
             sys.exit(-1)
-
-    if len(set(lengths))!= 1:
+    unique_lengths = set(lengths)
+    if len(unique_lengths)!= 1:
         sys.stderr.write(red("Error: not all of the sequences in the alignment are the same length\n"))
         for i in lengths_info:
             print(f"{i[0]}\t{i[1]}\n")
+        sys.exit(-1)
+    
+    if cds_mode and unique_lengths[0]%3!=0:
+        sys.stderr.write(red("Error: CDS mode flag used but alignment length not a multiple of 3.\n"))
         sys.exit(-1)
 
     return num_seqs,ref_input,record_ids,lengths[0]
