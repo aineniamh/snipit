@@ -594,7 +594,7 @@ def make_graph(num_seqs,
         ax.invert_yaxis() # must be called after axis limits are set
 
     ax.tick_params(axis='x', labelsize=8)
-    plt.xlabel("Genome position (base)", fontsize=9)
+    plt.xlabel("Position (base)", fontsize=9)
     plt.tight_layout()
     if not solid_background:
         plt.savefig(output, transparent=True)
