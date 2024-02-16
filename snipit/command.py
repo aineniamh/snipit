@@ -27,6 +27,7 @@ def main(sysargs = sys.argv[1:]):
 
     i_group = parser.add_argument_group('Input options')
     i_group.add_argument('alignment',help="Input alignment fasta file")
+    i_group.add_argument("-t","--sequence-type", action="store",help="Input sequence type: aa or nt", default="nt", dest="sequence_type")
     i_group.add_argument("-r","--reference", action="store",help="Indicates which sequence in the alignment is\nthe reference (by sequence ID).\nDefault: first sequence in alignment", dest="reference")
     i_group.add_argument("-l","--labels", action="store",help="Optional csv file of labels to show in output snipit plot. Default: sequence names", dest="labels")
     i_group.add_argument("--l-header", action="store",help="Comma separated string of column headers in label csv. First field indicates sequence name column, second the label column. Default: 'name,label'", dest="label_headers",default="name,label")
@@ -47,7 +48,7 @@ def main(sysargs = sys.argv[1:]):
     f_group.add_argument("--width",action="store",type=float,help="Overwrite the default figure width",default=0)
     f_group.add_argument("--size-option",action="store",help="Specify options for sizing. Options: expand, scale",dest="size_option",default="scale")
     f_group.add_argument("--solid-background",action="store_true",help="Force the plot to have a solid background, rather than a transparent one.",dest="solid_background")
-    f_group.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity",default="classic")
+    f_group.add_argument("-c","--colour-palette",dest="colour_palette",action="store",help="Specify colour palette. Options: primary, classic, purine-pyrimidine, greyscale, wes, verity, ugene",default="classic")
     f_group.add_argument("--flip-vertical",action='store_true',help="Flip the orientation of the plot so sequences are below the reference rather than above it.",dest="flip_vertical")
     f_group.add_argument("--sort-by-mutation-number", action='store_true',
                         help="Render the graph with sequences sorted by the number of SNPs relative to the reference (fewest to most). Default: False", dest="sort_by_mutation_number")
@@ -97,7 +98,7 @@ def main(sysargs = sys.argv[1:]):
 
     reference,alignment = sfunks.get_ref_and_alignment(args.alignment,ref_input,label_map)
 
-    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment,args.show_indels)
+    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment,args.show_indels, args.sequence_type)
 
     record_ambs = sfunks.find_ambiguities(alignment, snp_dict)
 
@@ -130,7 +131,7 @@ def main(sysargs = sys.argv[1:]):
                       args.sort_by_mutations,
                       args.recombi_mode,
                       args.recombi_references)
-
+    print(sfunks.green(f"Snipping Complete: {output}"))
 
 if __name__ == '__main__':
     main()
