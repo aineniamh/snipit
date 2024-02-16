@@ -30,6 +30,10 @@ YELLOW = '\033[93m'
 CYAN = '\u001b[36m'
 DIM = '\033[2m'
 
+NT_BASES = ["A","T","G","C","W","S","M","K","R","Y","B","D","H","V","N"]
+NT_AMBIG = ["W","S","M","K","R","Y","B","D","H","V","N"]
+AA_BASES = ["A","R","N","D","C","Q","E","G","H","I","L","K","M","F","P","S","T","W","Y","V","X","B","Z","J"]
+AA_AMBIG = ["X","B","Z","J"]
 
 def bp_range(s):
     """
@@ -217,8 +221,14 @@ def merge_indels(indel_list,prefix):
 
     return indel_list
 
-def find_snps(reference_seq,input_seqs,show_indels):
-    non_amb = ["A","T","G","C"]
+def find_snps(reference_seq,input_seqs,show_indels,type='nt'):
+    if type == 'nt':
+        non_amb = NT_BASES
+        amb = NT_AMBIG
+    if type == 'aa':
+        non_amb = AA_BASES
+        amb = AA_AMBIG
+
     snp_dict = {}
 
     record_snps = {}
@@ -261,7 +271,12 @@ def find_snps(reference_seq,input_seqs,show_indels):
 
     return snp_dict,record_snps,len(var_counter)
 
-def find_ambiguities(alignment, snp_dict):
+def find_ambiguities(alignment, snp_dict, type='nt'):
+
+    if type == "nt":
+        amb = NT_AMBIG
+    if type == "aa":
+        amb = AA_AMBIG
 
     snp_sites = collections.defaultdict(list)
     for seq in snp_dict:
@@ -281,7 +296,7 @@ def find_ambiguities(alignment, snp_dict):
         for i in snp_sites:
             bases = [query_seq[i],snp_sites[i]] #if query not same as ref allele
             if bases[0] != bases[1]:
-                if bases[0] not in ["A","T","G","C"]:
+                if bases[0] not in amb:
 
                     snp = f"{i+1}:{bases[1]}{bases[0]}" # position-outgroup-query
                     snps.append(snp)
@@ -637,7 +652,11 @@ def get_colours(colour_palette):
                 "greyscale":{"A":"#CCCCCC","C":"#999999","T":"#666666","G":"#333333"},
                 "blues":{"A":"#3DB19D","C":"#76C5BF","T":"#423761","G":"steelblue"},
                 "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251"},
-                "recombi":{"lineage_1":"steelblue","lineage_2":"#EA5463","Both":"darkseagreen","Private":"goldenrod"}
+                "recombi":{"lineage_1":"steelblue","lineage_2":"#EA5463","Both":"darkseagreen","Private":"goldenrod"},
+                "ugene":{"A":"#00ccff","R":"#d5c700","N":"#33ff00","D":"#ffff00","C":"#6600ff","Q":"#3399ff",
+                         "E":"#c0bdbb","G":"#ff5082","H":"#fff233","I":"#00abed","L":"#008fc6","K":"#ffee00",
+                         "M":"#1dc0ff","F":"#3df490","P":"#d5426c","S":"#ff83a7","T":"#ffd0dd","W":"#33cc78",
+                         "Y":"#65ffab","V":"#ff6699","X":"#999999","B":"#999999","Z":"#999999","J":"#999999"}
                 }
     if colour_palette not in palettes:
         sys.stderr.write(red(f"Error: please select one of {palettes} for --colour-palette option\n"))
