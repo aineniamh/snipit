@@ -4,6 +4,7 @@
 import sys
 import os
 import argparse
+import textwrap
 import pkg_resources
 import collections
 
@@ -27,7 +28,7 @@ def main(sysargs = sys.argv[1:]):
 
     i_group = parser.add_argument_group('Input options')
     i_group.add_argument('alignment',help="Input alignment fasta file")
-    i_group.add_argument("-t","--sequence-type", action="store",help="Input sequence type: aa or nt", default="nt", dest="sequence_type")
+    i_group.add_argument("-t","--sequence-type", choices=['nt','aa'], action="store",help="Input sequence type: aa or nt", default="nt", dest="sequence_type")
     i_group.add_argument("-r","--reference", action="store",help="Indicates which sequence in the alignment is\nthe reference (by sequence ID).\nDefault: first sequence in alignment", dest="reference")
     i_group.add_argument("-l","--labels", action="store",help="Optional csv file of labels to show in output snipit plot. Default: sequence names", dest="labels")
     i_group.add_argument("--l-header", action="store",help="Comma separated string of column headers in label csv. First field indicates sequence name column, second the label column. Default: 'name,label'", dest="label_headers",default="name,label")
@@ -63,8 +64,12 @@ def main(sysargs = sys.argv[1:]):
     s_group.add_argument("--show-indels",action='store_true',help="Include insertion and deletion mutations in snipit plot.",dest="show_indels")
     s_group.add_argument('--include-positions', dest='included_positions', type=sfunks.bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.")
     s_group.add_argument('--exclude-positions', dest='excluded_positions', type=sfunks.bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '--include-positions'.")
-    s_group.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences. Considered after '--include-positions'")
-
+    #s_group.add_argument("--exclude-ambig-pos",dest="exclude_ambig_pos",action='store_true',help="Exclude positions with ambig base in any sequences. Considered after '--include-positions'")
+    s_group.add_argument("--ambig-mode", dest="ambig_mode",choices=['all', 'snps', 'exclude'], default='snpsambi',
+                         help=textwrap.dedent('''Controls how ambiguous bases are handled -
+                        [all] include all ambig such as N,Y,B in all positions;
+                        [snps] only include ambig if a snp is present at the same position;
+                        [exclude] remove all ambig, same as depreciated --exclude-ambig-pos'''))
     misc_group = parser.add_argument_group('Misc options')
     misc_group.add_argument("-v","--version", action='version', version=f"snipit {__version__}")
 
@@ -98,7 +103,7 @@ def main(sysargs = sys.argv[1:]):
 
     reference,alignment = sfunks.get_ref_and_alignment(args.alignment,ref_input,label_map)
 
-    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment,args.show_indels, args.sequence_type)
+    snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment,args.show_indels,args.sequence_type,args.ambig_mode)
 
     record_ambs = sfunks.find_ambiguities(alignment, snp_dict)
 
@@ -124,7 +129,8 @@ def main(sysargs = sys.argv[1:]):
                         args.flip_vertical,
                         args.included_positions,
                         args.excluded_positions,
-                        args.exclude_ambig_pos,
+                        #args.exclude_ambig_pos,
+                        args.ambig_mode,
                       args.sort_by_mutation_number,
                       args.high_to_low,
                       args.sort_by_id,
