@@ -107,7 +107,7 @@ def main(sysargs = sys.argv[1:]):
 
     snp_dict,record_snps,num_snps = sfunks.find_snps(reference,alignment,args.show_indels,args.sequence_type,args.ambig_mode)
 
-    record_ambs = sfunks.find_ambiguities(alignment, snp_dict)
+    record_ambs = sfunks.find_ambiguities(alignment, snp_dict, args.sequence_type)
 
     colours = sfunks.get_colours(args.colour_palette)
 
