@@ -3,6 +3,12 @@ Summarise snps relative to a reference sequence
 
 <img src="./docs/genome_graph.png" width="700">
 
+### Install
+
+```
+pip install snipit
+```
+
 ### Example Usage
 
 - Basic usage for nucleotide alignments:
@@ -157,12 +163,6 @@ SNP options:
 
 Misc options:
   -v, --version         show program's version number and exit
-```
-
-### Install
-
-```
-pip install snipit
 ```
 
 ### Cite
