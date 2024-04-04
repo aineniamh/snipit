@@ -18,12 +18,13 @@ snipit test.fasta \
 ```
 Default format output is `png`. Only specify output path/name (not extension).
 
-- To output as different format, use `--format`:
+- To change output format, use `--format`:
 ```
 snipit test.fasta \
 --output-file test \
 --format pdf
 ```
+Options: `png`, `jpg`, `pdf`, `svg`, `tiff`.
 
 - To change color scheme, use `--colour-palette`:
 ```
@@ -32,10 +33,12 @@ snipit test.fasta \
 --colour-palette classic_extended
 ```
 
-Available colours schemes, where `ugene` is for protein (aa) alignments
+Other colours schemes:
 ```
 classic, classic_extended, primary, purine-pyrimidine, greyscale, wes,verity, ugene
 ```
+Use `ugene` for protein (aa) alignments.
+Use `classic_extended` for colouring ambiguous bases.
 
 - There are multiple options to control which SNPs or indels are included/excluded: 
 ```
@@ -45,14 +48,15 @@ snipit test.fasta \
 --exclude-positions '223 224 225'
 ```
 
-- For ambiguous bases, use the `--ambig-mode` to specify how ambiguous bases are handled:
+- For control over ambiguous bases, use `--ambig-mode` to specify how ambiguous bases are handled:
 ```
 [all] include all ambig such as N,Y,B in all positions
 [snps] only include ambig if a snp is present at the same position - Default 
 [exclude] remove all ambig, same as depreciated --exclude-ambig-pos
 ```
+Use the colour palette `classic_extended` when plotting with `all` or `snps`.
 
- Recombination mode is designed to assist with recombination analysis for SC2. This mode allows for colouring of mutations present in two references. For recombination mode, three flags are required: `--reference`,`--recombi-mode`,`--recombi-references`.
+ - Recombination mode is designed to assist with recombination analysis for SC2. This mode allows for colouring of mutations present in two references. For recombination mode, three flags are required: `--reference`,`--recombi-mode`,`--recombi-references`.
 
 The specified `--reference` must be different from the `--recombi-references`.
 ```
