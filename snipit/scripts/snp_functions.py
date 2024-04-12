@@ -283,11 +283,11 @@ def find_snps(reference_seq,input_seqs,show_indels,sequence_type,ambig_mode):
 
     return snp_dict,record_snps,len(var_counter)
 
-def find_ambiguities(alignment, snp_dict):
+def find_ambiguities(alignment, snp_dict,sequence_type):
 
-    if type == "nt":
+    if sequence_type == "nt":
         amb = NT_AMBIG
-    if type == "aa":
+    if sequence_type == "aa":
         amb = AA_AMBIG
 
     snp_sites = collections.defaultdict(list)
