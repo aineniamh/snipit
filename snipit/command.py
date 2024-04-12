@@ -28,7 +28,6 @@ def main(sysargs = sys.argv[1:]):
 
     i_group = parser.add_argument_group('Input options')
     i_group.add_argument('alignment',help="Input alignment fasta file")
-    i_group.add_argument("-t","--sequence-type", choices=['nt','aa'], action="store",help="Input sequence type: aa or nt", default="nt", dest="sequence_type")
     i_group.add_argument("-r","--reference", action="store",help="Indicates which sequence in the alignment is\nthe reference (by sequence ID).\nDefault: first sequence in alignment", dest="reference")
     i_group.add_argument("-l","--labels", action="store",help="Optional csv file of labels to show in output snipit plot. Default: sequence names", dest="labels")
     i_group.add_argument("--l-header", action="store",help="Comma separated string of column headers in label csv. First field indicates sequence name column, second the label column. Default: 'name,label'", dest="label_headers",default="name,label")
