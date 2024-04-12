@@ -14,7 +14,6 @@ from enum import Enum
 import warnings
 warnings.filterwarnings('ignore')
 
-
 # imports from other modules
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -34,6 +33,11 @@ GREEN = '\033[32m'
 YELLOW = '\033[93m'
 CYAN = '\u001b[36m'
 DIM = '\033[2m'
+
+NT_BASES = ["A","T","G","C"]
+NT_AMBIG = ["W","S","M","K","R","Y","B","D","H","V","N"]
+AA_BASES = ["A","R","N","D","C","Q","E","G","H","I","L","K","M","F","P","S","T","W","Y","V"]
+AA_AMBIG = ["X","B","Z","J"]
 
 
 def bp_range(s):
@@ -224,8 +228,24 @@ def merge_indels(indel_list,prefix):
 
     return indel_list
 
-def find_snps(reference_seq,input_seqs,show_indels):
-    non_amb = ["A","T","G","C"]
+def find_snps(reference_seq,input_seqs,show_indels,sequence_type,ambig_mode):
+
+    # set the appropriate genetic code to use for snp calling
+    if sequence_type == 'nt':
+        if ambig_mode == 'snps':
+            gcode = NT_BASES
+        elif ambig_mode == 'all':
+            gcode = NT_BASES + NT_AMBIG
+        else: # exclude
+            gcode = NT_BASES
+    if sequence_type == 'aa':
+        if ambig_mode == 'snps':
+            gcode = AA_BASES
+        elif ambig_mode == 'all':
+            gcode = AA_BASES + AA_AMBIG
+        else: #exclude
+            gcode = AA_BASES
+
     snp_dict = {}
 
     record_snps = {}
@@ -237,7 +257,7 @@ def find_snps(reference_seq,input_seqs,show_indels):
         for i in range(len(query_seq)):
             bases = [query_seq[i],reference_seq[i]]
             if bases[0] != bases[1]:
-                if bases[0] in non_amb and bases[1] in non_amb:
+                if bases[0] in gcode and bases[1] in gcode:
 
                     snp = f"{i+1}:{bases[1]}{bases[0]}" # position-reference-query
 
@@ -268,14 +288,12 @@ def find_snps(reference_seq,input_seqs,show_indels):
 
     return snp_dict,record_snps,len(var_counter)
 
-
 def find_ambiguities(alignment, snp_dict,sequence_type):
 
     if sequence_type == "nt":
         amb = NT_AMBIG
     if sequence_type == "aa":
         amb = AA_AMBIG
-
 
     snp_sites = collections.defaultdict(list)
     for seq in snp_dict:
@@ -295,7 +313,7 @@ def find_ambiguities(alignment, snp_dict,sequence_type):
         for i in snp_sites:
             bases = [query_seq[i],snp_sites[i]] #if query not same as ref allele
             if bases[0] != bases[1]:
-                if bases[0] not in ["A","T","G","C"]:
+                if bases[0] not in amb:
 
                     snp = f"{i+1}:{bases[1]}{bases[0]}" # position-outgroup-query
                     snps.append(snp)
@@ -363,7 +381,6 @@ def make_graph(num_seqs,
                flip_vertical=False,
                included_positions=None,
                excluded_positions=None,
-               exclude_ambig_pos=False,
                sort_by_mutation_number=False,
                high_to_low=True,
                sort_by_id=False,
@@ -464,7 +481,7 @@ def make_graph(num_seqs,
                 x_position = int(pos)
 
                 # if positions with any ambiguities should be ignored, note the position
-                if exclude_ambig_pos:
+                if ambig_mode == 'exclude':
                     excluded_positions.add(x_position)
                 else:
                     ref = var[0]
@@ -649,13 +666,21 @@ def make_graph(num_seqs,
 def get_colours(colour_palette):
 
     palettes = {"classic": {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue"},
+                "classic_extended": {"A":"steelblue","C":"indianred","T":"darkseagreen",
+                                     "G":"skyblue","W":"#FFCC00","S":"#66FF00","M":"#6600FF",
+                                     "K":"#66FFCC","R":"#FF00FF","Y":"#FFFF99","B":"#CCFF99",
+                                     "D":"#FFFF00","H":"##33FF00","V":"#FF6699","N":"#333333"},
                 "wes": {"A":"#CC8B3C","C":"#456355","T":"#541F12","G":"#B62A3D"},
                 "primary": {"A":"green","C":"goldenrod","T":"steelblue","G":"indianred"},
                 "purine-pyrimidine":{"A":"indianred","C":"teal","T":"teal","G":"indianred"},
                 "greyscale":{"A":"#CCCCCC","C":"#999999","T":"#666666","G":"#333333"},
                 "blues":{"A":"#3DB19D","C":"#76C5BF","T":"#423761","G":"steelblue"},
                 "verity":{"A":"#EC799A","C":"#df6eb7","T":"#FF0080","G":"#9F0251"},
-                "recombi":{"lineage_1":"steelblue","lineage_2":"#EA5463","Both":"darkseagreen","Private":"goldenrod"}
+                "recombi":{"lineage_1":"steelblue","lineage_2":"#EA5463","Both":"darkseagreen","Private":"goldenrod"},
+                "ugene":{"A":"#00ccff","R":"#d5c700","N":"#33ff00","D":"#ffff00","C":"#6600ff","Q":"#3399ff",
+                         "E":"#c0bdbb","G":"#ff5082","H":"#fff233","I":"#00abed","L":"#008fc6","K":"#ffee00",
+                         "M":"#1dc0ff","F":"#3df490","P":"#d5426c","S":"#ff83a7","T":"#ffd0dd","W":"#33cc78",
+                         "Y":"#65ffab","V":"#ff6699","X":"#999999","B":"#999999","Z":"#999999","J":"#999999"}
                 }
     if colour_palette not in palettes:
         sys.stderr.write(red(f"Error: please select one of {palettes} for --colour-palette option\n"))
