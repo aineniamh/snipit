@@ -10,6 +10,10 @@ import csv
 import math
 from itertools import groupby, count
 from collections import OrderedDict
+from enum import Enum
+import warnings
+warnings.filterwarnings('ignore')
+
 
 # imports from other modules
 from Bio import SeqIO
@@ -18,6 +22,7 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.patches import Polygon
+
 
 colour_list = ["lightgrey","white"]
 colour_cycle = cycle(colour_list)
@@ -58,7 +63,7 @@ def check_ref(recombi_mode):
         sys.exit(-1)
 
 
-def qc_alignment(alignment,reference,cds_mode,cwd):
+def qc_alignment(alignment,reference,cds_mode,sequence_type,cwd):
     lengths = []
     lengths_info = []
     num_seqs = 0
@@ -101,6 +106,8 @@ def qc_alignment(alignment,reference,cds_mode,cwd):
     if cds_mode and unique_lengths[0]%3!=0:
         sys.stderr.write(red("Error: CDS mode flag used but alignment length not a multiple of 3.\n"))
         sys.exit(-1)
+
+    print(green(f"Note:") + f" assuming the alignment provided is of type {sequence_type}. If this is not the case, change input --sequence-type")
 
     return num_seqs,ref_input,record_ids,lengths[0]
 
@@ -261,10 +268,13 @@ def find_snps(reference_seq,input_seqs,show_indels):
 
     return snp_dict,record_snps,len(var_counter)
 
-def find_ambiguities(alignment,snp_dict):
 
+def find_ambiguities(alignment, snp_dict,sequence_type):
 
-
+    if sequence_type == "nt":
+        amb = NT_AMBIG
+    if sequence_type == "aa":
+        amb = AA_AMBIG
 
 
     snp_sites = collections.defaultdict(list)
