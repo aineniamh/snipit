@@ -64,7 +64,7 @@ def check_ref(recombi_mode):
         sys.exit(-1)
 
 
-def qc_alignment(alignment,reference,cds_mode,cwd):
+def qc_alignment(alignment,reference,sequence_type,cds_mode,cwd):
     lengths = []
     lengths_info = []
     num_seqs = 0
