@@ -62,6 +62,7 @@ def main(sysargs = sys.argv[1:]):
     f_group.add_argument("--high-to-low", action='store_false',
                         help="If sorted by mutation number is selected, show the sequences with the fewest SNPs closest to the reference. Default: False",
                         dest="high_to_low")
+    f_group.add_argument("--remove-site-text",action='store_true',help="Do not annotate text on the individual columns in the figure.",dest="remove_site_text")
 
     s_group = parser.add_argument_group('SNP options')
     s_group.add_argument("--show-indels",action='store_true',help="Include insertion and deletion mutations in snipit plot.",dest="show_indels")
@@ -128,6 +129,7 @@ def main(sysargs = sys.argv[1:]):
                         args.height,
                         args.size_option,
                         args.solid_background,
+                        args.remove_site_text,
                         args.flip_vertical,
                         args.included_positions,
                         args.excluded_positions,

@@ -377,6 +377,7 @@ def make_graph(num_seqs,
                 size_option,
                 solid_background,
                 ambig_mode,
+                remove_site_text,
                flip_vertical=False,
                included_positions=None,
                excluded_positions=None,
@@ -570,7 +571,8 @@ def make_graph(num_seqs,
 
         # write text adjacent to the SNPs shown with the numeric position
         # the text alignment is toggled right/left (top/bottom considering 90-deg rotation) if the plot is flipped
-        ax.text(position, y_level+(0.55*y_inc), snp, size=9, ha="center", va="bottom" if not flip_vertical else "top", rotation=90)
+        if not remove_site_text:
+            ax.text(position, y_level+(0.55*y_inc), snp, size=9, ha="center", va="bottom" if not flip_vertical else "top", rotation=90)
 
         # snp position labels
         left_of_box = position-(0.4*spacing)
@@ -594,11 +596,12 @@ def make_graph(num_seqs,
             ax.add_patch(rect)
 
             # sequence variant text
-            ax.text(position, y_pos*y_inc, var, size=9, ha="center", va="center")
+            if not remove_site_text:
+                ax.text(position, y_pos*y_inc, var, size=9, ha="center", va="center")
 
         # reference variant text
-
-        ax.text(position, y_inc * -0.2, ref, size=9, ha="center", va="center")
+        if not remove_site_text:
+            ax.text(position, y_inc * -0.2, ref, size=9, ha="center", va="center")
 
         #polygon showing mapping from genome to spaced out snps
         x = [snp-0.5,snp+0.5,right_of_box,left_of_box,snp-0.5]
