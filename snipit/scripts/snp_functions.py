@@ -575,7 +575,7 @@ def make_graph(num_seqs,
         ax.add_patch(rect)
 
         # for each record add the name to the left hand side
-        ax.text(-50, y_level, label_map[record], size=9, ha="right", va="center")
+        ax.text(0, y_level, label_map[record], size=9, ha="right", va="center")
 
     position = 0
 
