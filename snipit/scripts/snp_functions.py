@@ -23,6 +23,12 @@ import matplotlib.patches as patches
 from matplotlib.patches import Polygon
 
 
+new_rc_params = {'text.usetex': False,
+"svg.fonttype": 'none'
+}
+mpl.rcParams.update(new_rc_params)
+
+
 colour_list = ["lightgrey","white"]
 colour_cycle = cycle(colour_list)
 END_FORMATTING = '\033[0m'
@@ -66,6 +72,10 @@ def check_ref(recombi_mode):
         sys.stderr.write(red(f"Error: Please explicitly state reference sequence when using `--recombi-mode`\n"))
         sys.exit(-1)
 
+def check_recombi_refs():
+    if recombi_mode:
+        sys.stderr.write(red(f"Error: Please explicitly state reference sequence when using `--recombi-mode`\n"))
+        sys.exit(-1)
 
 def qc_alignment(alignment,reference,cds_mode,sequence_type,cwd):
     lengths = []
@@ -144,6 +154,9 @@ def reference_qc(reference, record_ids,cwd):
 
     return ref_file, ref_input
 
+def recombi_ref_missing():
+    sys.stderr.write(red(f"Error: when using --recombi-mode, please supply 2 references separated by a comma with `--recombi-references`.\n"))
+    sys.exit(-1)
 
 def recombi_qc(recombi_refs, reference, record_ids,cwd):
     recombi_refs = recombi_refs.split(",")
