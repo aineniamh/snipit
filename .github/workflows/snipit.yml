@@ -23,7 +23,7 @@ jobs:
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Install snipit
-        run: pip3 install -e .
+        run: pip3 install --break-system-packages -e .
       - name: Check snipit version
         run: snipit --version
       - name: Run snipit with test data
