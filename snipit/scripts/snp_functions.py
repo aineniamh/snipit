@@ -642,7 +642,7 @@ def make_graph(num_seqs,
     rect = patches.Rectangle((0,(top_polygon)), length, y_inc ,alpha=0.2, fill=True, edgecolor='none',facecolor="dimgrey")
     ax.add_patch(rect)
 
-    ax.text(-20,  y_inc * -0.2, label_map["reference"], size=9, ha="right", va="center")
+    ax.text(0,  y_inc * -0.2, label_map["reference"], size=9, ha="right", va="center")
 
     ref_genome_position = y_inc*-2.7
 
