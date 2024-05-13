@@ -281,7 +281,6 @@ def find_snps(reference_seq,input_seqs,show_indels,sequence_type,ambig_mode):
                 elif bases[1]=='-' and show_indels:
                     #if there's a gap in the ref, means an insertion
                     insertions.append(i+1)
-
         if show_indels:
             insertions = merge_indels(insertions,"ins")
             deletions = merge_indels(deletions,"del")
@@ -291,14 +290,12 @@ def find_snps(reference_seq,input_seqs,show_indels,sequence_type,ambig_mode):
             for var in var_list:
                 var_counter[var]+=1
                 variants.append(var)
-
         variants = sorted(variants, key = lambda x : int(x.split(":")[0]))
 
         snp_dict[query_seq] = variants
 
         for record in input_seqs[query_seq]:
             record_snps[record] = variants
-
     return snp_dict,record_snps,len(var_counter)
 
 def find_ambiguities(alignment, snp_dict,sequence_type):
@@ -326,8 +323,7 @@ def find_ambiguities(alignment, snp_dict,sequence_type):
         for i in snp_sites:
             bases = [query_seq[i],snp_sites[i]] #if query not same as ref allele
             if bases[0] != bases[1]:
-                if bases[0] not in amb:
-
+                if bases[0] in amb:
                     snp = f"{i+1}:{bases[1]}{bases[0]}" # position-outgroup-query
                     snps.append(snp)
 
@@ -339,14 +335,11 @@ def find_ambiguities(alignment, snp_dict,sequence_type):
 
 def recombi_ref_snps(recombi_references, snp_records):
 
-    #print(recombi_references)
     recombi_refs = recombi_references.split(",")
     recombi_snps = []
-    #print(recombi_refs)
     for ref in recombi_refs:
         recombi_snps.append(snp_records[ref])
 
-    #print(recombi_snps)
     return recombi_snps,recombi_refs
 
 def recombi_painter(snp_to_check,recombi_snps):
@@ -436,7 +429,6 @@ def make_graph(num_seqs,
 
     else:
         record_order = list(snp_records.keys())
-
     if recombi_mode:
         # Get a list of SNPs present in each recombi_reference
         recombi_snps,recombi_refs = recombi_ref_snps(recombi_references, snp_records)
@@ -449,7 +441,6 @@ def make_graph(num_seqs,
         record_order.insert(1, recombi_refs[1])
 
     for record in record_order:
-
         # y level increments per record, add a gap after the two recombi_refs
         if recombi_mode and y_level == 2:
             y_level += 1.2
@@ -578,7 +569,6 @@ def make_graph(num_seqs,
         ax.text(0, y_level, label_map[record], size=9, ha="right", va="center")
 
     position = 0
-
     for snp in sorted(snp_dict):
         position += spacing
 
