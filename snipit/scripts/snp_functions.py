@@ -489,10 +489,7 @@ def make_graph(num_seqs, num_snps, amb_dict, snp_records,
                     # Add name of record, ref, SNP in record, y_level and False for "recombi_mode" colour logic
                     snp_dict[x_position].append((record, ref, base, y_level, False))
 
-    print(snp_dict.keys())
-    print(len(snp_dict))
-    print(len(included_positions),included_positions)
-    print(len(excluded_positions),excluded_positions)
+
     # gather the positions that are not explicitly excluded,
     # but are not among those to be included
     positions_not_included=set()
@@ -500,7 +497,6 @@ def make_graph(num_seqs, num_snps, amb_dict, snp_records,
         # of the positions present,
         # gather a set of positions which should NOT be included in the output
         positions_not_included = set(snp_dict.keys()) - included_positions
-        print("positions not included", positions_not_included)
 
     # remove positions which should be ignored or are not included (pop items from union of the two sets)
     for pos in excluded_positions | positions_not_included:
