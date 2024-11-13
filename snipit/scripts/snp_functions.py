@@ -370,29 +370,24 @@ def write_out_snps(write_snps,record_snps,output_dir):
             fw.write(f"{record},{snps},{len(record_snps[record])}\n")
 
 
-def make_graph(num_seqs,
-                num_snps,
-                amb_dict,
-                snp_records,
-                output,
-                label_map,
-                colour_dict,
-                length,
-                width,
-                height,
-                size_option,
-                solid_background,
-                ambig_mode,
-                remove_site_text,
-               flip_vertical=False,
-               included_positions=None,
-               excluded_positions=None,
-               sort_by_mutation_number=False,
-               high_to_low=True,
-               sort_by_id=False,
-               sort_by_mutations=False,
-               recombi_mode=False,
-               recombi_references=[]
+"""
+sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,
+                output,label_map,colours,length,
+                args.width,args.height,args.size_option,args.solid_background,
+                args.remove_site_text,args.ambig_mode,
+                args.flip_vertical,args.included_positions,args.excluded_positions,
+                args.sort_by_mutation_number,args.high_to_low, args.sort_by_id,
+                      args.sort_by_mutations,
+                      args.recombi_mode,
+                      args.recombi_references)
+"""
+
+def make_graph(num_seqs, num_snps, amb_dict, snp_records,
+                output, label_map, colour_dict, length,
+                width, height, size_option, solid_background,
+                remove_site_text,ambig_mode,flip_vertical=False,included_positions=None,excluded_positions=None,
+               sort_by_mutation_number=False, high_to_low=True, sort_by_id=False,
+               sort_by_mutations=False, recombi_mode=False, recombi_references=[]
                ):
     y_level = 0
     ref_vars = {}
@@ -494,6 +489,10 @@ def make_graph(num_seqs,
                     # Add name of record, ref, SNP in record, y_level and False for "recombi_mode" colour logic
                     snp_dict[x_position].append((record, ref, base, y_level, False))
 
+    print(snp_dict.keys())
+    print(len(snp_dict))
+    print(len(included_positions),included_positions)
+    print(len(excluded_positions),excluded_positions)
     # gather the positions that are not explicitly excluded,
     # but are not among those to be included
     positions_not_included=set()
@@ -501,6 +500,7 @@ def make_graph(num_seqs,
         # of the positions present,
         # gather a set of positions which should NOT be included in the output
         positions_not_included = set(snp_dict.keys()) - included_positions
+        print("positions not included", positions_not_included)
 
     # remove positions which should be ignored or are not included (pop items from union of the two sets)
     for pos in excluded_positions | positions_not_included:
