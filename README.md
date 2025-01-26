@@ -77,6 +77,14 @@ snipit test.prot.fasta \
 
 There are several more options, see below for full usage.
 
+### Issues
+
+If you see an error like: 
+```
+ModuleNotFoundError: No module named 'pkg_resources'
+```
+This may mean your python install did not come with setuptools. Install [setuptools](https://packaging.python.org/en/latest/guides/installing-using-linux-tools/) and this should resolve the issue.
+
 ### Full Usage
 ```
 snipit
