@@ -9,6 +9,7 @@ Summarise snps relative to a reference sequence
 pip install snipit
 ```
 
+
 ### Example Usage
 Link to test data: [test.fasta](./docs/test.fasta) and [aa_test.fasta](./docs/aa_alignment.fasta)
 
