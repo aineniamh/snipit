@@ -3,6 +3,11 @@ Summarise snps relative to a reference sequence
 
 <img src="./docs/genome_graph.png" width="700">
 
+### How to cite
+If you use snipit in a publication, please cite: 
+
+```Áine O’Toole, Ammar Aziz, Daniel Maloney, Publication-ready single nucleotide polymorphism visualization with snipit, Bioinformatics, Volume 40, Issue 8, August 2024, btae510, https://doi.org/10.1093/bioinformatics/btae510```
+
 ### Install
 
 ```
