@@ -46,12 +46,19 @@ AA_BASES = ["A","R","N","D","C","Q","E","G","H","I","L","K","M","F","P","S","T",
 AA_AMBIG = ["X","B","Z","J"]
 
 
-def bp_range(s):
-    """
-        Crude function to parse positions or position ranges (inclusive) passed as a string by argparse.
-        Input: string in the format "100-200" or "100"
-        Returns a list with integer positions.
-        Arguably better solved by a regex, but still would need to typecast
+def bp_range(s: str) -> list[int]:
+    """Parse positions or position ranges from a string argument.
+    
+    Parses input in the format '100-200' (range, inclusive) or '100' (single position).
+    
+    Args:
+        s: String in format 'start-end' or 'pos'.
+        
+    Returns:
+        List of integer positions.
+        
+    Raises:
+        argparse.ArgumentTypeError: If string format is invalid.
     """
     # try to parse as a range
     try:
@@ -67,17 +74,47 @@ def bp_range(s):
         
 
 
-def check_ref(recombi_mode):
+def check_ref(recombi_mode: bool) -> None:
+    """Validate that reference is specified when using recombi-mode.
+    
+    Args:
+        recombi_mode: Whether recombination mode is enabled.
+        
+    Raises:
+        SystemExit: If recombi_mode is True without explicit reference.
+    """
     if recombi_mode:
         sys.stderr.write(red(f"Error: Please explicitly state reference sequence when using `--recombi-mode`\n"))
         sys.exit(-1)
 
 def check_recombi_refs():
+    """Validate that reference is specified when using recombi-mode.
+    
+    This function is currently unused but validates configuration.
+    
+    Raises:
+        SystemExit: If recombi_mode is True without explicit reference.
+    """
     if recombi_mode:
         sys.stderr.write(red(f"Error: Please explicitly state reference sequence when using `--recombi-mode`\n"))
         sys.exit(-1)
 
-def qc_alignment(alignment,reference,cds_mode,sequence_type,cwd):
+def qc_alignment(alignment: str, reference: str, cds_mode: bool, sequence_type: str, cwd: str) -> tuple:
+    """Validate alignment file and extract metadata.
+    
+    Args:
+        alignment: Path to alignment FASTA file.
+        reference: Optional reference sequence ID or path to genbank file.
+        cds_mode: Whether CDS mode is enabled (sequence length must be multiple of 3).
+        sequence_type: Sequence type ('nt' for nucleotide or 'aa' for amino acid).
+        cwd: Current working directory.
+        
+    Returns:
+        Tuple of (num_seqs, ref_input, record_ids, alignment_length).
+        
+    Raises:
+        SystemExit: If alignment validation fails (file not found, invalid format, length mismatch, etc.).
+    """
     lengths = []
     lengths_info = []
     num_seqs = 0
@@ -125,7 +162,23 @@ def qc_alignment(alignment,reference,cds_mode,sequence_type,cwd):
 
     return num_seqs,ref_input,record_ids,lengths[0]
 
-def reference_qc(reference, record_ids,cwd):
+def reference_qc(reference: str, record_ids: list, cwd: str) -> tuple:
+    """Validate and process reference sequence input.
+    
+    Handles both sequence IDs from alignment and genbank file paths.
+    
+    Args:
+        reference: Reference sequence ID or path to genbank file.
+        record_ids: List of sequence IDs in the alignment.
+        cwd: Current working directory.
+        
+    Returns:
+        Tuple of (ref_file, ref_input) where ref_file is genbank record (or empty string)
+        and ref_input is sequence ID or sequence object.
+        
+    Raises:
+        SystemExit: If reference file not found or reference not in alignment.
+    """
     ref_file = ""
     if "." in reference and reference.split(".")[-1] in ["gb","genbank"]:
         ref_path = os.path.join(cwd, reference)
@@ -154,11 +207,27 @@ def reference_qc(reference, record_ids,cwd):
 
     return ref_file, ref_input
 
-def recombi_ref_missing():
+def recombi_ref_missing() -> None:
+    """Error handler for missing recombination references.
+    
+    Raises:
+        SystemExit: Always exits with error message.
+    """
     sys.stderr.write(red(f"Error: when using --recombi-mode, please supply 2 references separated by a comma with `--recombi-references`.\n"))
     sys.exit(-1)
 
-def recombi_qc(recombi_refs, reference, record_ids,cwd):
+def recombi_qc(recombi_refs: str, reference: str, record_ids: list, cwd: str) -> None:
+    """Validate recombination mode references.
+    
+    Args:
+        recombi_refs: Comma-separated string of two reference sequence IDs.
+        reference: Main reference sequence ID (must be different from recombi_refs).
+        record_ids: List of all sequence IDs in alignment.
+        cwd: Current working directory.
+        
+    Raises:
+        SystemExit: If validation fails (wrong count, empty values, duplicates, not in alignment).
+    """
     recombi_refs = recombi_refs.split(",")
     if not len(recombi_refs) == 2:
         sys.stderr.write(red(f"Error: input 2 references separated by a comma for `--recombi-references`.\n"))
@@ -177,7 +246,24 @@ def recombi_qc(recombi_refs, reference, record_ids,cwd):
 
 
 
-def label_map(record_ids,labels,column_names,cwd):
+def label_map(record_ids: list, labels: str, column_names: str, cwd: str) -> dict:
+    """Create mapping from sequence IDs to display labels.
+    
+    Reads optional CSV file to map sequence IDs to custom labels.
+    If no label file provided, sequence IDs are used as labels.
+    
+    Args:
+        record_ids: List of sequence IDs in alignment.
+        labels: Optional path to CSV file with labels.
+        column_names: Comma-separated string of CSV column names (seq_col,label_col).
+        cwd: Current working directory.
+        
+    Returns:
+        Dictionary mapping sequence IDs to display labels.
+        
+    Raises:
+        SystemExit: If label file not found or column names missing.
+    """
     seq_col,label_col = column_names.split(",")
 
     label_map = {}
@@ -210,10 +296,28 @@ def label_map(record_ids,labels,column_names,cwd):
 
     return label_map
 
-def next_colour():
+def next_colour() -> str:
+    """Get next color from alternating cycle.
+    
+    Cycles between light grey and white for sequence background coloring.
+    
+    Returns:
+        Next color in cycle as string.
+    """
     return next(colour_cycle)
 
-def get_ref_and_alignment(input_file,reference,label_map):
+def get_ref_and_alignment(input_file: str, reference: str, label_map: dict) -> tuple:
+    """Extract reference sequence and group alignment by unique sequences.
+    
+    Args:
+        input_file: Path to alignment FASTA file.
+        reference: Reference sequence ID or Seq object.
+        label_map: Dictionary mapping sequence IDs to labels.
+        
+    Returns:
+        Tuple of (reference_seq, input_seqs) where input_seqs is a dict grouping
+        sequence strings to their record IDs (for handling duplicates).
+    """
     input_seqs = collections.defaultdict(list)
     reference_seq = ""
 
@@ -229,7 +333,18 @@ def get_ref_and_alignment(input_file,reference,label_map):
 
     return reference_seq, input_seqs
 
-def merge_indels(indel_list,prefix):
+def merge_indels(indel_list: list, prefix: str) -> list:
+    """Merge consecutive indel positions into ranges.
+    
+    Groups adjacent indel positions and annotates them with length.
+    
+    Args:
+        indel_list: List of integer positions with indels.
+        prefix: Prefix for indel type ('ins' for insertion or 'del' for deletion).
+        
+    Returns:
+        List of merged indel strings in format 'position:prefix_length'.
+    """
     if indel_list:
         groups = groupby(indel_list, key=lambda item, c=count():item-next(c))
         tmp = [list(g) for k, g in groups]
@@ -241,8 +356,23 @@ def merge_indels(indel_list,prefix):
 
     return indel_list
 
-def find_snps(reference_seq,input_seqs,show_indels,sequence_type,ambig_mode):
-
+def find_snps(reference_seq: str, input_seqs: dict, show_indels: bool, sequence_type: str, ambig_mode: str) -> tuple:
+    """Identify SNPs and optionally indels between sequences and reference.
+    
+    Compares each sequence to reference, identifying position:ref_base->query_base variants.
+    Handles ambiguous bases according to ambig_mode.
+    
+    Args:
+        reference_seq: Reference sequence string.
+        input_seqs: Dict mapping sequences to their record IDs.
+        show_indels: Whether to include insertions and deletions.
+        sequence_type: 'nt' for nucleotide or 'aa' for amino acid.
+        ambig_mode: 'all' (include all ambig), 'snps' (only when SNP present), or 'exclude'.
+        
+    Returns:
+        Tuple of (snp_dict, record_snps, num_snps) where snp_dict maps sequences to variants,
+        record_snps maps record IDs to variants, and num_snps is total unique variant count.
+    """
     # set the appropriate genetic code to use for snp calling
     if sequence_type == 'nt':
         if ambig_mode == 'snps':
@@ -298,8 +428,17 @@ def find_snps(reference_seq,input_seqs,show_indels,sequence_type,ambig_mode):
             record_snps[record] = variants
     return snp_dict,record_snps,len(var_counter)
 
-def find_ambiguities(alignment, snp_dict,sequence_type):
-
+def find_ambiguities(alignment: dict, snp_dict: dict, sequence_type: str) -> dict:
+    """Identify ambiguous bases at SNP positions.
+    
+    Args:
+        alignment: Dict mapping sequences to their record IDs.
+        snp_dict: Dict mapping sequences to their SNP variants.
+        sequence_type: 'nt' for nucleotide or 'aa' for amino acid.
+        
+    Returns:
+        Dictionary mapping record IDs to list of ambiguous base annotations.
+    """
     if sequence_type == "nt":
         amb = NT_AMBIG
     if sequence_type == "aa":
@@ -333,8 +472,17 @@ def find_ambiguities(alignment, snp_dict,sequence_type):
     return amb_dict
 
 
-def recombi_ref_snps(recombi_references, snp_records):
-
+def recombi_ref_snps(recombi_references: str, snp_records: dict) -> tuple:
+    """Extract SNPs from recombination reference sequences.
+    
+    Args:
+        recombi_references: Comma-separated string of two reference IDs.
+        snp_records: Dict mapping record IDs to their SNP variants.
+        
+    Returns:
+        Tuple of (recombi_snps, recombi_refs) where recombi_snps contains
+        variant lists for each reference.
+    """
     recombi_refs = recombi_references.split(",")
     recombi_snps = []
     for ref in recombi_refs:
@@ -342,8 +490,16 @@ def recombi_ref_snps(recombi_references, snp_records):
 
     return recombi_snps,recombi_refs
 
-def recombi_painter(snp_to_check,recombi_snps):
-
+def recombi_painter(snp_to_check: str, recombi_snps: list) -> str:
+    """Classify SNP by presence in recombination reference lineages.
+    
+    Args:
+        snp_to_check: SNP variant string to classify.
+        recombi_snps: List of two lists containing SNPs for each recombination reference.
+        
+    Returns:
+        Classification string: 'Both', 'lineage_1', 'lineage_2', or 'Private'.
+    """
     recombi_ref_1 = recombi_snps[0]
     recombi_ref_2 = recombi_snps[1]
     common_snps = []
@@ -362,7 +518,17 @@ def recombi_painter(snp_to_check,recombi_snps):
         return "Private"
 
 
-def write_out_snps(write_snps,record_snps,output_dir):
+def write_out_snps(write_snps: bool, record_snps: dict, output_dir: str) -> None:
+    """Write SNP summary to CSV file.
+    
+    Creates 'snps.csv' with record names, their SNPs, and SNP counts.
+    Only writes if write_snps is True.
+    
+    Args:
+        write_snps: Whether to write SNP file.
+        record_snps: Dict mapping record IDs to their SNP lists.
+        output_dir: Directory to write CSV file to.
+    """
     with open(os.path.join(output_dir,"snps.csv"),"w") as fw:
         fw.write("record,snps,num_snps\n")
         for record in record_snps:
@@ -382,13 +548,43 @@ sfunks.make_graph(num_seqs,num_snps,record_ambs,record_snps,
                       args.recombi_references)
 """
 
-def make_graph(num_seqs, num_snps, amb_dict, snp_records,
-                output, label_map, colour_dict, length,
-                width, height, size_option, solid_background,
-                remove_site_text,ambig_mode,flip_vertical=False,included_positions=None,excluded_positions=None,
-               sort_by_mutation_number=False, high_to_low=True, sort_by_id=False,
-               sort_by_mutations=False, recombi_mode=False, recombi_references=[]
-               ):
+def make_graph(num_seqs: int, num_snps: int, amb_dict: dict, snp_records: dict,
+                output: str, label_map: dict, colour_dict: dict, length: int,
+                width: float, height: float, size_option: str, solid_background: bool,
+                remove_site_text: bool, ambig_mode: str, flip_vertical: bool = False,
+                included_positions: list = None, excluded_positions: list = None,
+                sort_by_mutation_number: bool = False, high_to_low: bool = True,
+                sort_by_id: bool = False, sort_by_mutations: str = False,
+                recombi_mode: bool = False, recombi_references: list = []
+                ) -> None:
+    """Generate and save SNP visualization plot.\n    
+    Creates a matplotlib figure showing SNPs/indels across aligned sequences relative to reference.
+    Supports multiple sorting, filtering, and visualization options.\n    
+    Args:
+        num_seqs: Number of sequences in alignment.
+        num_snps: Total number of unique SNPs.
+        amb_dict: Dictionary mapping records to ambiguous bases.
+        snp_records: Dictionary mapping record IDs to SNP variants.
+        output: Output file path.
+        label_map: Dictionary mapping sequence IDs to display labels.
+        colour_dict: Dictionary mapping bases/variants to colors.
+        length: Alignment length.
+        width: Figure width in inches (0 for auto).
+        height: Figure height in inches (0 for auto).
+        size_option: Sizing strategy ('expand' or 'scale').
+        solid_background: Whether to use solid background (vs transparent).
+        remove_site_text: Whether to hide position labels.
+        ambig_mode: How to handle ambiguous bases.
+        flip_vertical: Whether to flip plot vertically.
+        included_positions: Specific positions to include (filters to these only).
+        excluded_positions: Positions to exclude from plot.
+        sort_by_mutation_number: Sort sequences by SNP count.
+        high_to_low: Sort direction for mutation-based sorting.
+        sort_by_id: Sort sequences alphabetically by ID.
+        sort_by_mutations: Sort by specific position bases (comma-separated positions).
+        recombi_mode: Whether to color by recombination lineage.
+        recombi_references: List of two reference sequence IDs for recombination mode.
+    """    
     y_level = 0
     ref_vars = {}
     snp_dict = collections.defaultdict(list)
@@ -662,8 +858,21 @@ def make_graph(num_seqs, num_snps, amb_dict, snp_records,
     else:
         plt.savefig(output)
 
-def get_colours(colour_palette):
-
+def get_colours(colour_palette: str) -> dict:
+    """Retrieve color palette for visualization.
+    
+    Available palettes: classic, classic_extended, primary, purine-pyrimidine,
+    greyscale, wes, blues, verity, recombi (for recombination mode), ugene (for proteins).
+    
+    Args:
+        colour_palette: Name of the color palette.
+        
+    Returns:
+        Dictionary mapping bases/variants to hex color codes.
+        
+    Raises:
+        SystemExit: If palette name is invalid.
+    """
     palettes = {"classic": {"A":"steelblue","C":"indianred","T":"darkseagreen","G":"skyblue"},
                 "classic_extended": {"A":"steelblue","C":"indianred","T":"darkseagreen",
                                      "G":"skyblue","W":"#FFCC00","S":"#66FF00","M":"#6600FF",
@@ -689,21 +898,49 @@ def get_colours(colour_palette):
 
     return colour_dict
 
-def check_size_option(s):
+def check_size_option(s: str) -> None:
+    """Validate figure size scaling option.
+    
+    Args:
+        s: Size option string ('expand' or 'scale').
+        
+    Raises:
+        SystemExit: If option is invalid.
+    """
     size_options = ["expand", "scale"]
     s_string = "\n - ".join(size_options)
     if s not in size_options:
         sys.stderr.write(red(f"Error: size option specified not one of:\n - {s_string}\n"))
         sys.exit(-1)
 
-def check_format(f):
+def check_format(f: str) -> None:
+    """Validate output image format.
+    
+    Args:
+        f: Format string (png, jpg, pdf, svg, or tiff).
+        
+    Raises:
+        SystemExit: If format is invalid.
+    """
     formats = ["png", "jpg", "pdf", "svg", "tiff"]
     f_string = "\n - ".join(formats)
     if f not in formats:
         sys.stderr.write(red(f"Error: format specified not one of:\n - {f_string}\n"))
         sys.exit(-1)
 
-def colour(text, text_colour):
+def colour(text: str, text_colour: str) -> str:
+    """Apply ANSI color formatting to text.
+    
+    Supports colors: red, green, yellow, dim, cyan.
+    Supports modifiers: bold, underline.
+    
+    Args:
+        text: Text string to color.
+        text_colour: Color name or color name with modifiers (e.g., 'bold red').
+        
+    Returns:
+        Text with ANSI color codes applied.
+    """
     bold_text = 'bold' in text_colour
     text_colour = text_colour.replace('bold', '')
     underline_text = 'underline' in text_colour
@@ -732,14 +969,46 @@ def colour(text, text_colour):
     coloured_text += text + END_FORMATTING
     return coloured_text
 
-def red(text):
+def red(text: str) -> str:
+    """Apply red color to text.
+    
+    Args:
+        text: Text to color.
+        
+    Returns:
+        Red colored text.
+    """
     return RED + text + END_FORMATTING
 
-def cyan(text):
+def cyan(text: str) -> str:
+    """Apply cyan color to text.
+    
+    Args:
+        text: Text to color.
+        
+    Returns:
+        Cyan colored text.
+    """
     return CYAN + text + END_FORMATTING
 
-def green(text):
+def green(text: str) -> str:
+    """Apply green color to text.
+    
+    Args:
+        text: Text to color.
+        
+    Returns:
+        Green colored text.
+    """
     return GREEN + text + END_FORMATTING
 
-def yellow(text):
+def yellow(text: str) -> str:
+    """Apply yellow color to text.
+    
+    Args:
+        text: Text to color.
+        
+    Returns:
+        Yellow colored text.
+    """
     return YELLOW + text + END_FORMATTING
