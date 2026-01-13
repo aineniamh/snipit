@@ -16,6 +16,7 @@ If you use snipit in a publication, please cite:
 pip install snipit
 ```
 
+
 ### Example Usage
 Link to test data: [test.fasta](./docs/test.fasta) and [aa_test.fasta](./docs/aa_alignment.fasta)
 

@@ -27,7 +27,7 @@ jobs:
       - name: Check snipit version
         run: snipit --version
       - name: Run snipit with test data
-        run: snipit docs/test_2.fasta | tee snipit.log
+        run: snipit docs/test.fasta | tee snipit.log
       - name: Run snipit output snps
-        run: snipit docs/test_2.fasta -s | tee snipit_snps.log
+        run: snipit docs/test.fasta -s | tee snipit_snps.log
 

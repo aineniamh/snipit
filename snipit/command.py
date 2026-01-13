@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
+"""Command-line interface for snipit SNP visualization tool."""
 
 # imports of built-ins
 import sys
 import os
 import argparse
 import textwrap
-import pkg_resources
-import collections
 
 # imports from other modules
 from Bio import SeqIO
@@ -21,7 +20,11 @@ cwd = os.getcwd()
 
 
 def main(sysargs = sys.argv[1:]):
-
+    """Parse command-line arguments and generate SNP visualization plot.
+    
+    Args:
+        sysargs: List of command-line arguments (defaults to sys.argv[1:]).
+    """
     parser = argparse.ArgumentParser(prog = _program, 
     description='snipit', 
     usage='''snipit <alignment> [options]''')
