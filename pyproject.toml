@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=77.0.3", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snipit"
+dynamic = ["version"]
+description = "snipit"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    {name = "Aine OToole", email = "aine.otoole@ed.ac.uk"}
+]
+license = {text = "LICENSE"}
+keywords = []
+dependencies = [
+    "biopython>=1.78",
+    "matplotlib>=3.5"
+]
+
+[project.urls]
+Homepage = "https://github.com/aineniamh/snipit"
+
+[project.scripts]
+snipit = "snipit.command:main"
+
+[tool.setuptools]
+packages = ["snipit", "snipit.scripts"]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "snipit.__version__"}
