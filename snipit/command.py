@@ -71,7 +71,7 @@ def main(sysargs = sys.argv[1:]):
     s_group.add_argument("--show-indels",action='store_true',help="Include insertion and deletion mutations in snipit plot.",dest="show_indels")
     s_group.add_argument('--include-positions', dest='included_positions', type=sfunks.bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position only included in the output. Ex. '100-150' or Ex. '100 101' Considered before '--exclude-positions'.")
     s_group.add_argument('--exclude-positions', dest='excluded_positions', type=sfunks.bp_range, nargs='+', default=None, help="One or more range (closed, inclusive; one-indexed) or specific position to exclude in the output. Ex. '100-150' or Ex. '100 101' Considered after '--include-positions'.")
-    s_group.add_argument("--ambig-mode", dest="ambig_mode",choices=['all', 'snps', 'exclude'], default='snpsambi',
+    s_group.add_argument("--ambig-mode", dest="ambig_mode",choices=['all', 'snps', 'exclude'], default='snps',
                          help=textwrap.dedent('''Controls how ambiguous bases are handled -
                         [all] include all ambig such as N,Y,B in all positions;
                         [snps] only include ambig if a snp is present at the same position;
